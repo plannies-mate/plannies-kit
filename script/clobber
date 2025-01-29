@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Exit on any error
+set -e
+
+# Change to script directory
+cd "$(dirname "$0")/.."
+
+# Ensure we're in the right place
+if [ ! -f "lib/download.rb" ]; then
+    echo "Error: Must be run from project root directory"
+    exit 1
+fi
+rm -rf repos
+
+echo clobbered repos directory!

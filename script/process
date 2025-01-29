@@ -1,0 +1,40 @@
+#!/bin/bash
+
+error_handler() {
+  local line_no=$1
+  local error_code=$2
+  echo "Error on line ${line_no} with exit code ${error_code}"
+  case ${error_code} in
+    1)
+      echo "General error occurred"
+      ;;
+    2)
+      echo "Missing repository directory"
+      ;;
+    *)
+      echo "Unexpected error occurred"
+      ;;
+  esac
+}
+
+# Enable error tracing and error handler
+set -e
+trap 'error_handler ${LINENO} $?' ERR
+
+# Get the project root directory
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_DIR="${1:-$PROJECT_ROOT/repos}"
+
+# Change to project root
+cd "$PROJECT_ROOT"
+
+echo "Step 1: Downloading repositories..."
+bundle exec ruby lib/download.rb "$REPO_DIR"
+
+echo -e "\nStep 2: Cleaning repositories..."
+bundle exec ruby lib/cleanup.rb "$REPO_DIR"
+
+echo -e "\nStep 3: Analyzing code..."
+bundle exec ruby lib/analyze.rb "$REPO_DIR"
+
+echo -e "\nProcess complete! Check the output above for the extraMatchWords hash."
