@@ -24,6 +24,7 @@ trap 'error_handler ${LINENO} $?' ERR
 # Get the project root directory
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REPO_DIR="${1:-$PROJECT_ROOT/repos}"
+LIMIT="${2:-}"
 
 # Change to project root
 cd "$PROJECT_ROOT"
@@ -31,7 +32,7 @@ cd "$PROJECT_ROOT"
 mkdir -p "$REPO_DIR"
 
 echo "Step 1: Downloading repositories..."
-bundle exec ruby lib/download.rb "$REPO_DIR"
+bundle exec ruby lib/download.rb "$REPO_DIR" "$LIMIT"
 
 echo -e "\nStep 2: Cleaning repositories..."
 bundle exec ruby lib/cleanup.rb "$REPO_DIR"

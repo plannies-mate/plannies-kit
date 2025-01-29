@@ -50,20 +50,28 @@ class ScraperAnalyzer
     repo_name = File.basename(repo_path)
     puts "\nAnalyzing #{repo_name}..."
 
-    # Data for both debug and production
-    words = Set.new
     urls = Set.new
+    words = Set.new
 
     Dir.chdir(repo_path) do
-      code_files = Dir.glob("**/*.{rb,py,js,pl,php}")
+      code_files = Dir.glob("**/*")  # All files that weren't cleaned away
 
       code_files.each do |file|
-        content = File.read(file)
-        extract_content(content, words, urls)
+        next unless File.file?(file)
+        begin
+          content = File.read(file)
+          extract_urls(content, urls)
+        rescue
+          puts "  Warning: Could not read #{file}"
+        end
+      end
+
+      # Process URLs to extract path components
+      urls.each do |url|
+        words.merge(extract_words_from_url(url))
       end
     end
 
-    # Store full data for debugging
     @results[:repos][repo_name] = {
       name: repo_name,
       description: @descriptions[repo_name],
@@ -72,8 +80,7 @@ class ScraperAnalyzer
     }
   end
 
-  def extract_content(content, words, urls)
-    # Extract URLs for debug info
+  def extract_urls(content, urls)
     content.scan(/https?:\/\/[^\s<>"']+/).each do |url|
       begin
         uri = URI.parse(url)
@@ -82,16 +89,36 @@ class ScraperAnalyzer
         # Skip invalid URLs
       end
     end
+  end
 
-    # Extract potential terms
-    terms = content.scan(/[A-Za-z][A-Za-z0-9_]+/)
-                   .select { |t| t.length > 2 }  # Skip short terms
-                   .map(&:downcase)
-                   .uniq
+  def extract_words_from_url(url)
+    begin
+      uri = URI.parse(url)
+      # Get path and query parameters
+      path = uri.path
+      query = uri.query
+      return [] unless path && !path.empty? && path != '/'
 
-    # Filter out dictionary words
-    non_dict_terms = filter_dictionary_words(terms)
-    words.merge(non_dict_terms)
+      # Get path components
+      parts = path.downcase.split(/[^a-z0-9]+/).reject(&:empty?)
+
+      # Add query parameter names and values
+      if query
+        query.split('&').each do |param|
+          name, value = param.split('=', 2)
+          parts << name.downcase if name
+          parts << value.downcase if value && !value.empty?
+        end
+      end
+
+      # Filter parts that are too short or just numbers
+      parts = parts.select { |part| part.length > 2 && part =~ /[a-z]/ }
+
+      # Filter out dictionary words
+      filter_dictionary_words(parts)
+    rescue URI::InvalidURIError
+      []
+    end
   end
 
   def filter_dictionary_words(terms)
@@ -126,14 +153,15 @@ class ScraperAnalyzer
       };
     JS
 
-    File.write('scraper_analysis.js', js_content)
+    FileUtils.mkdir_p('tmp')
+    File.write('tmp/scraper_analysis.js', js_content)
 
     # Debug JSON file - full analysis including URLs
-    File.write('debug_analysis.json', JSON.pretty_generate(@results))
+    File.write('tmp/debug_analysis.json', JSON.pretty_generate(@results))
 
     puts "\n# Analysis Results"
-    puts "Generated scraper_analysis.js with search terms and descriptions"
-    puts "Generated debug_analysis.json with full analysis including URLs"
+    puts "Generated tmp/scraper_analysis.js with search terms and descriptions"
+    puts "Generated tmp/debug_analysis.json with full analysis including URLs"
     puts "Analyzed #{@results[:metadata][:repos_analyzed]} repositories"
     puts "Generated at: #{@results[:metadata][:generated_at]}"
   end

@@ -1,6 +1,7 @@
 # Project specific
 /repos/
 /tmp/
+!/tmp/.keep
 ,*
 
 # Ruby
