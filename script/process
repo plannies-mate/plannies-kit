@@ -28,6 +28,8 @@ REPO_DIR="${1:-$PROJECT_ROOT/repos}"
 # Change to project root
 cd "$PROJECT_ROOT"
 
+mkdir -p "$REPO_DIR"
+
 echo "Step 1: Downloading repositories..."
 bundle exec ruby lib/download.rb "$REPO_DIR"
 

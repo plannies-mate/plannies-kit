@@ -3,6 +3,16 @@
 require 'fileutils'
 
 class ReposCleaner
+  DIRS_TO_REMOVE = %w[
+    test tests spec specs
+    doc docs fixtures expected
+  ]
+
+  FILES_TO_REMOVE = %w[
+    Gemfile
+    Gemfile.lock
+  ]
+
   def initialize(repo_dir)
     @repo_dir = repo_dir
     abort "Directory #{repo_dir} does not exist!" unless Dir.exist?(repo_dir)
@@ -27,10 +37,22 @@ class ReposCleaner
     # Remove .git directory
     FileUtils.rm_rf(File.join(repo_path, '.git'))
 
-    # Remove test directories
-    %w[test tests spec specs].each do |test_dir|
-      dir_path = File.join(repo_path, test_dir)
-      FileUtils.rm_rf(dir_path) if File.directory?(dir_path)
+    # Remove specified directories
+    DIRS_TO_REMOVE.each do |dir|
+      dir_path = File.join(repo_path, dir)
+      if File.directory?(dir_path)
+        FileUtils.rm_rf(dir_path)
+        puts "  Removed directory: #{dir}"
+      end
+    end
+
+    # Remove specified files
+    FILES_TO_REMOVE.each do |file|
+      file_path = File.join(repo_path, file)
+      if File.file?(file_path)
+        FileUtils.rm_f(file_path)
+        puts "  Removed file: #{file}"
+      end
     end
 
     # Remove test files

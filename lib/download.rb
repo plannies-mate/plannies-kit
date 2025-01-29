@@ -2,10 +2,10 @@
 
 require 'json'
 require 'fileutils'
+require 'net/http'
+require 'uri'
 
 class RepoDownloader
-  @repo_dir = 'repos'
-
   def initialize(repo_dir)
     @repo_dir = repo_dir
     abort "Directory #{repo_dir} does not exist!" unless Dir.exist?(repo_dir)
@@ -24,8 +24,30 @@ class RepoDownloader
 
   def fetch_repo_list
     puts "Fetching repository list..."
-    output = `curl -s https://api.github.com/orgs/planningalerts-scrapers/repos`
-    JSON.parse(output)
+    page = 1
+    all_repos = []
+
+    loop do
+      url = "https://api.github.com/orgs/planningalerts-scrapers/repos?page=#{page}&per_page=30"
+      uri = URI(url)
+      response = Net::HTTP.get_response(uri)
+
+      if response.is_a?(Net::HTTPSuccess)
+        repos = JSON.parse(response.body)
+        break if repos.empty?
+        all_repos.concat(repos)
+        page += 1
+      else
+        puts "Error fetching page #{page}: #{response.code} #{response.message}"
+        break
+      end
+    end
+
+    # Save descriptions to file
+    descriptions = all_repos.map { |r| [r['name'], r['description']] }.to_h
+    File.write(File.join(@repo_dir, 'descriptions.json'), JSON.pretty_generate(descriptions))
+
+    all_repos
   end
 
   def clone_repo(repo)
@@ -50,6 +72,10 @@ class RepoDownloader
         !tests/
         !spec/
         !specs/
+        !fixtures/
+        !doc/
+        !docs/
+        !expected/
       SPARSE
       system("git checkout")
     end

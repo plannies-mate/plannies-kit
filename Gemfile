@@ -8,9 +8,9 @@ gem 'fileutils'
 
 group :development do
   # For maintaining consistent code style
-#  gem 'rubocop'
-#  gem 'rubocop-performance'
+  #  gem 'rubocop'
+  #  gem 'rubocop-performance'
 
   # For testing, if needed later
-#  gem 'rspec'
+  #  gem 'rspec'
 end
