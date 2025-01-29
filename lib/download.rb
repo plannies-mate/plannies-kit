@@ -53,6 +53,7 @@ class RepoDownloader
 
     loop do
       # Try to filter archived repos at API level, but still check response
+      # url = "https://github.com/orgs/planningalerts-scrapers/repositories.json?q=archived%3Afalse
       url = "https://api.github.com/orgs/planningalerts-scrapers/repos?archived=false&page=#{page}&per_page=#{per_page}"
       uri = URI(url)
       response = Net::HTTP.get_response(uri)
