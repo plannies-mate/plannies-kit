@@ -25,7 +25,9 @@ class ReposCleaner
     suburbnames.txt
     tsconfig.json
     words.txt
+    README.md
   ]
+
 
   # Common binary file extensions
   BINARY_EXTENSIONS = %w[

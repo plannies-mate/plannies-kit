@@ -39,6 +39,7 @@ Cricky, what's that?" frontend tool identify which scraper to use for different 
 
 - README covers installation, dependencies and usage for the human
 - GUIDELINES.md is focused mainly on AI's but includes design for both
+- SPEC.md is the specification for both AI and hman
 - Document any special configurations as needed
 
 ## Performance & Security

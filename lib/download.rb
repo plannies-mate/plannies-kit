@@ -16,7 +16,7 @@ class RepoDownloader
   def download_repos
     repos = fetch_repo_list
     total_repos = @limit ? [@limit, repos.size].min : repos.size
-    puts "Processing #{total_repos} out of #{repos.size} repositories#{" (LIMIT=#{@limit})" if @limit}"
+    puts "Processing #{total_repos} out of #{repos.size} active repositories#{" (LIMIT=#{@limit})" if @limit}"
 
     repos.take(total_repos).each do |repo|
       clone_repo(repo)
@@ -28,25 +28,43 @@ class RepoDownloader
   private
 
   def fetch_repo_list
+    puts "Checking existing repositories..."
+    # Count actual repo directories, excluding .git and descriptions.json
+    existing_count = Dir.glob(File.join(@repo_dir, '*'))
+                        .select { |f| File.directory?(f) && File.basename(f) != '.git' }
+                        .count
+
+    desc_file = File.join(@repo_dir, 'descriptions.json')
+    if File.exist?(desc_file)
+      # If descriptions.json is more than a week old, clean and redownload
+      if (Time.now - File.mtime(desc_file)) > 7 * 24 * 60 * 60
+        puts "descriptions.json is over a week old - cleaning and redownloading..."
+        FileUtils.rm_rf(Dir.glob(File.join(@repo_dir, '*')))
+      elsif existing_count > 0 # Only skip if we have repos
+        puts "Already have #{existing_count} repositories - skipping download"
+        return JSON.parse(File.read(desc_file)).map { |name, info| { 'name' => name, 'description' => info['description'] } }
+      end
+    end
+
     puts "Fetching repository list..."
     page = 1
     all_repos = []
     per_page = 30
 
-    # Count existing repos
-    existing_count = Dir.glob(File.join(@repo_dir, '*'))
-                        .select { |f| File.directory?(f) && File.basename(f) != '.git' }
-                        .count
-
     loop do
-      url = "https://api.github.com/orgs/planningalerts-scrapers/repos?page=#{page}&per_page=#{per_page}"
+      # Try to filter archived repos at API level, but still check response
+      url = "https://api.github.com/orgs/planningalerts-scrapers/repos?archived=false&page=#{page}&per_page=#{per_page}"
       uri = URI(url)
       response = Net::HTTP.get_response(uri)
 
       if response.is_a?(Net::HTTPSuccess)
         repos = JSON.parse(response.body)
         break if repos.empty?
-        all_repos.concat(repos)
+
+        # Filter out archived repos
+        active_repos = repos.reject { |repo| repo['archived'] }
+        puts "Page #{page}: Found #{repos.size} repos, #{repos.size - active_repos.size} archived" if active_repos.size < repos.size
+        all_repos.concat(active_repos)
 
         # Check if we already have all repos
         if page == 1
@@ -68,7 +86,7 @@ class RepoDownloader
     end
 
     # Save descriptions to file (using all fetched repos even if limited)
-    descriptions = all_repos.map { |r| [r['name'], r['description']] }.to_h
+    descriptions = all_repos.map { |r| [r['name'], { 'description' => r['description'] }] }.to_h
     File.write(File.join(@repo_dir, 'descriptions.json'), JSON.pretty_generate(descriptions))
 
     all_repos
@@ -85,11 +103,17 @@ class RepoDownloader
 
     puts "Cloning #{name}..."
     # Use --no-checkout to avoid checking out files, then do a sparse checkout
-    system("git clone --no-checkout #{repo['clone_url']} #{target_dir}")
+    unless system("git clone --no-checkout #{repo['clone_url']} #{target_dir}")
+      FileUtils.rm_rf(target_dir)
+      raise "Error cloning #{name} - failed to clone #{repo['clone_url']}"
+    end
 
     Dir.chdir(target_dir) do
       # Configure sparse checkout to exclude test directories
-      system("git config core.sparseCheckout true")
+      unless system("git config core.sparseCheckout true")
+        FileUtils.rm_rf(target_dir)
+        raise "Error configuring #{name} - failed to clone #{repo['clone_url']}"
+      end
       File.write('.git/info/sparse-checkout', <<~SPARSE)
         /*
         !test/
@@ -101,7 +125,10 @@ class RepoDownloader
         !docs/
         !expected/
       SPARSE
-      system("git checkout")
+      unless system("git checkout")
+        FileUtils.rm_rf(target_dir)
+        raise "Error checking out #{name} - failed to clone #{repo['clone_url']}"
+      end
     end
   end
 end

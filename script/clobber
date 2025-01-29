@@ -11,6 +11,6 @@ if [ ! -f "lib/download.rb" ]; then
     echo "Error: Must be run from project root directory"
     exit 1
 fi
-rm -rf repos
+rm -rf repos tmp/*
 
-echo clobbered repos directory!
+echo clobbered repos directory and tmp contents!
