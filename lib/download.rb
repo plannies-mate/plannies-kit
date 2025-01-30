@@ -38,6 +38,45 @@ class RepoDownloader < ProcessBase
     system(cmd, exception: true)
   end
 
+  def clone_repo(repo)
+    name = repo['name']
+    target_dir = File.join(REPOS_DIR, name)
+
+    if Dir.exist?(target_dir)
+      puts "Skipping #{name} - directory already exists"
+      return
+    end
+
+    # Clone URL constructor
+    clone_url = "https://github.com/planningalerts-scrapers/#{name}.git"
+    
+    puts "Cloning #{name}... #{repo.inspect}"
+    begin
+      # Use --no-checkout to avoid checking out files, then do a sparse checkout
+      run_cmd("git clone --no-checkout #{clone_url} #{target_dir}")
+
+      Dir.chdir(target_dir) do
+        # Configure sparse checkout to exclude test directories
+        run_cmd("git config core.sparseCheckout true")
+        File.write('.git/info/sparse-checkout', <<~SPARSE)
+          /*
+          !test/
+          !tests/
+          !spec/
+          !specs/
+          !fixtures/
+          !doc/
+          !docs/
+          !expected/
+        SPARSE
+        run_cmd("git checkout")
+      end
+    rescue StandardError => _e
+      FileUtils.rm_rf(target_dir)
+      raise
+    end
+  end
+
   def fetch_repo_list
     existing_count = count_existing_repos
 
@@ -47,6 +86,8 @@ class RepoDownloader < ProcessBase
 
     fetch_and_process_repos(existing_count)
   end
+
+  private
 
   def count_existing_repos
     puts "Checking existing repositories..."
@@ -100,8 +141,15 @@ class RepoDownloader < ProcessBase
     end
 
     # Save descriptions to file
-    descriptions = all_repos.map { |r| [r['name'], r['description']] }.to_h
-    File.write(File.join('log', 'descriptions.json'), JSON.pretty_generate(descriptions))
+    descriptions = {}
+    all_repos.each do |repo|
+      descriptions[repo['name']] = {
+        'description' => repo['description'],
+        'last_updated' => repo['lastUpdated']['timestamp']
+      }
+    end
+    FileUtils.mkdir_p(File.dirname(REPOS_FILE))
+    File.write(REPOS_FILE, JSON.pretty_generate(descriptions))
 
     all_repos
   end
@@ -134,42 +182,6 @@ class RepoDownloader < ProcessBase
     end
 
     [active_repos, page_count, repo_count]
-  end
-
-  def clone_repo(repo)
-    name = repo['name']
-    target_dir = File.join(REPOS_DIR, name)
-
-    if Dir.exist?(target_dir)
-      puts "Skipping #{name} - directory already exists"
-      return
-    end
-
-    puts "Cloning #{name}... #{repo.inspect}"
-    begin
-      # Use --no-checkout to avoid checking out files, then do a sparse checkout
-      run_cmd("git clone --no-checkout #{repo['clone_url']} #{target_dir}")
-
-      Dir.chdir(target_dir) do
-        # Configure sparse checkout to exclude test directories
-        run_cmd("git config core.sparseCheckout true")
-        File.write('.git/info/sparse-checkout', <<~SPARSE)
-          /*
-          !test/
-          !tests/
-          !spec/
-          !specs/
-          !fixtures/
-          !doc/
-          !docs/
-          !expected/
-        SPARSE
-        run_cmd("git checkout")
-      end
-    rescue StandardError => _e
-      FileUtils.rm_rf(target_dir)
-      raise
-    end
   end
 end
 
