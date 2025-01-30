@@ -25,30 +25,33 @@ trap 'error_handler ${LINENO} $?' ERR
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REPO_DIR="${1:-$PROJECT_ROOT/repos}"
 
-# Only pass LIMIT if it was actually specified
-if [ -n "$2" ]; then
-  LIMIT_ARG="$2"
-  echo "Using limit: $LIMIT_ARG"
-else
-  LIMIT_ARG=""
-fi
+{
+  # Only pass LIMIT if it was actually specified
+  if [ -n "$2" ]; then
+    LIMIT_ARG="$2"
+    echo "Using limit: $LIMIT_ARG"
+  else
+    LIMIT_ARG=""
+  fi
 
-# Change to project root
-cd "$PROJECT_ROOT"
+  # Change to project root
+  cd "$PROJECT_ROOT"
 
-mkdir -p "$REPO_DIR"
+  mkdir -p "$REPO_DIR"
 
-echo "Step 1: Downloading repositories..."
-if [ -n "$LIMIT_ARG" ]; then
-  bundle exec ruby lib/download.rb "$REPO_DIR" "$LIMIT_ARG"
-else
-  bundle exec ruby lib/download.rb "$REPO_DIR"
-fi
+  echo "Step 1: Downloading repositories..."
+  if [ -n "$LIMIT_ARG" ]; then
+    bundle exec ruby lib/download.rb "$REPO_DIR" "$LIMIT_ARG"
+  else
+    bundle exec ruby lib/download.rb "$REPO_DIR"
+  fi
 
-echo -e "\nStep 2: Cleaning repositories..."
-bundle exec ruby lib/cleanup.rb "$REPO_DIR"
+  echo -e "\nStep 2: Cleaning repositories..."
+  bundle exec ruby lib/cleanup.rb "$REPO_DIR"
 
-echo -e "\nStep 3: Analyzing code..."
-bundle exec ruby lib/analyze.rb "$REPO_DIR"
+  echo -e "\nStep 3: Analyzing code..."
+  bundle exec ruby lib/analyze.rb "$REPO_DIR"
 
-echo -e "\nProcess complete! Check the output above for the extraMatchWords hash."
+  echo -e "\nProcess complete! Check the output above for the extraMatchWords hash."
+  ;
+} 2> >(tee log/process.err >&2) | tee log/process.log

@@ -37,8 +37,8 @@ Or run individual scripts with optional LIMIT parameter:
 ```
 
 The analysis generates:
-- `tmo/scraper_analysis.js`: Words and descriptions for frontend use
-- `tmp/debug_analysis.json`: Full analysis including URLs (for debugging)
+- `log/scraper_analysis.js`: Words and descriptions for frontend use
+- `log/debug_analysis.json`: Full analysis including URLs (for debugging)
 
 ## Scripts
 

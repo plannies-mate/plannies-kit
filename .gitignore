@@ -4,6 +4,10 @@
 !/tmp/.keep
 ,*
 
+# Logs
+/log/
+!/log/.keep
+
 # Ruby
 *.gem
 *.rbc
