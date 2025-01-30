@@ -48,8 +48,6 @@ class RepoDownloader < ProcessBase
     fetch_and_process_repos(existing_count)
   end
 
-  private
-
   def count_existing_repos
     puts "Checking existing repositories..."
     Dir.glob(File.join(REPOS_DIR, '*'))
@@ -107,7 +105,6 @@ class RepoDownloader < ProcessBase
 
     all_repos
   end
-
 
   def fetch_repo_page(page)
     url = "#{GITHUB_REPOS_URL}&page=#{page}"
