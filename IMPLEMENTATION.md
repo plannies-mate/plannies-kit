@@ -190,7 +190,8 @@ processing needs change.
 
 ## Command Line Interface
 
-- Scripts validate arguments and fail fast with clear errors
+- Scripts now use constants from ProcessBase instead of requiring directory arguments
+- No longer require explicit repo directory parameter
 - Progress reporting is clear but concise
 - Optional LIMIT parameter to process fewer repos for testing
 
