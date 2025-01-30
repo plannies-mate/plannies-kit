@@ -48,5 +48,6 @@ main() {
   echo -e "\nProcess complete!"
 }
 
-# Capture output and errors, but still show them
-main "$@" | tee log/process.log
+# Capture output and errors, and display them
+exec > >(tee log/process.log) 2>&1
+main "$@"
