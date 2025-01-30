@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'bundler/setup'
+Bundler.require
+
 require 'fileutils'
 
 class ReposCleaner

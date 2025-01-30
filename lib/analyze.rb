@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-require 'json'
+require 'bundler/setup'
+Bundler.require
+
 require 'uri'
 require 'fileutils'
 require 'time'
