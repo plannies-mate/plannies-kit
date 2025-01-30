@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -o pipefail
+set -e
+
 cd "$(dirname "$0")/.." || ( echo "Could not cd to project directory" ; exit 1 )
 
 error_handler() {
@@ -10,7 +13,6 @@ error_handler() {
    exit "${error_code:-1}"
 }
 
-set -e
 trap 'error_handler ${LINENO} $?' ERR
 
 main() {
@@ -48,6 +50,4 @@ main() {
   echo -e "\nProcess complete!"
 }
 
-# Capture output and errors, and display them
-exec > >(tee log/process.log) 2>&1
-main "$@"
+main "$@" 2>&1 | tee log/process.log
