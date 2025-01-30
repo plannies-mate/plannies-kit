@@ -72,7 +72,6 @@ class ScraperAnalyzer
   private
 
   def load_descriptions
-    REPOS_FILE = File.join(REPOS_DIR, 'descriptions.json')
     if File.exist?(REPOS_FILE)
       data = JSON.parse(File.read(REPOS_FILE))
       @descriptions = {}
@@ -322,10 +321,6 @@ class ScraperAnalyzer
 end
 
 if __FILE__ == $0
-  if ARGV.empty?
-    abort "Usage: #{$0} REPOS_DIR"
-  end
-
-  analyzer = ScraperAnalyzer.new(ARGV[0])
+  analyzer = ScraperAnalyzer.new
   analyzer.analyze
 end
