@@ -2,6 +2,18 @@
 
 cd "$(dirname "$0")/.." || ( echo "Could not cd to project directory" ; exit 1 )
 
+ # shellcheck disable=SC2317
+ error_handler() {
+   local line_no=$1
+   local error_code=$2
+   local last_command="${BASH_COMMAND}"
+   echo "ERROR: line ${line_no} exited with status ${error_code}, command: ${last_command}"
+   exit "${error_code:-1}"
+ }
+
+ set -eo pipefail
+ trap 'error_handler ${LINENO} $?' ERR
+
 main() {
   # Only pass LIMIT if it was actually specified
   if [ -n "$1" ]; then
