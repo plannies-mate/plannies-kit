@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# shellcheck disable=SC2317
 error_handler() {
   local line_no=$1
   local error_code=$2
@@ -17,18 +18,15 @@ error_handler() {
   esac
 }
 
-# Enable error tracing and error handler
 set -e
 trap 'error_handler ${LINENO} $?' ERR
 
-# Get the project root directory
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-REPO_DIR="${1:-$PROJECT_ROOT/repos}"
+cd "$(dirname "$0")/.." || ( echo "Could not cd to project directory" ; exit 1 )
 
-{
+main() {
   # Only pass LIMIT if it was actually specified
-  if [ -n "$2" ]; then
-    LIMIT_ARG="$2"
+  if [ -n "$1" ]; then
+    LIMIT_ARG="$1"
     echo "Using limit: $LIMIT_ARG"
   else
     LIMIT_ARG=""
@@ -37,25 +35,25 @@ REPO_DIR="${1:-$PROJECT_ROOT/repos}"
   # Change to project root
   cd "$PROJECT_ROOT"
 
-  mkdir -p "$REPO_DIR"
+  mkdir -p repos
 
   echo "Step 1: Downloading repositories..."
-  if [ -n "$LIMIT_ARG" ]; then
-    lib/download.rb "$REPO_DIR" "$LIMIT_ARG"
-    lib/validate/download.rb "$REPO_DIR" "$LIMIT_ARG"
-  else
-    lib/download.rb "$REPO_DIR"
-    lib/validate/download.rb "$REPO_DIR"
-  fi
+  # shellcheck disable=SC2086
+  lib/download.rb $LIMIT_ARG
+  # shellcheck disable=SC2086
+  lib/validate/download.rb $LIMIT_ARG
 
   echo -e "\nStep 2: Cleaning repositories..."
-  lib/cleanup.rb "$REPO_DIR"
-  lib/validate/cleanup.rb "$REPO_DIR"
+  lib/cleanup.rb
+  lib/validate/cleanup.rb
 
   echo -e "\nStep 3: Analyzing code..."
-  lib/analyze.rb "$REPO_DIR"
-  lib/validate/analyze.rb "$REPO_DIR"
+  lib/analyze.rb
+  lib/validate/analyze.rb
 
   echo -e "\nProcess complete! Check the output above for the extraMatchWords hash."
-  ;
-} 2> >(tee log/process.err >&2) | tee log/process.log
+}
+
+main "$@" 2> >(tee log/process.err >&2) | tee log/process.log
+
+exit 0

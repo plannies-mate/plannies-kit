@@ -8,6 +8,8 @@ require 'fileutils'
 require 'time'
 require 'set'
 
+require_relative 'constants'
+
 class ScraperAnalyzer
   SCRAPER_PATTERNS = [
     'scraper.rb',
@@ -30,9 +32,8 @@ class ScraperAnalyzer
                            'true', 'false', 'null', 'undefined'
                          ])
 
-  def initialize(repo_dir)
-    @repo_dir = repo_dir
-    abort "Directory #{repo_dir} does not exist!" unless Dir.exist?(repo_dir)
+  def initialize
+    abort "Directory #{REPOS_DIR} does not exist!" unless Dir.exist?(REPOS_DIR)
     load_descriptions
     @broken_scrapers = []
     @no_scraper_repos = []
@@ -55,7 +56,7 @@ class ScraperAnalyzer
       valid_repos: {} # Will hold only the useful scrapers
     }
 
-    all_repos = Dir.glob(File.join(@repo_dir, '*')).sort
+    all_repos = Dir.glob(File.join(REPOS_DIR, '*')).sort
     total_repos = all_repos.count { |path| File.directory?(path) && File.basename(path) != '.git' }
     puts "\nAnalyzing #{total_repos} repositories..."
 
@@ -71,15 +72,15 @@ class ScraperAnalyzer
   private
 
   def load_descriptions
-    desc_file = File.join(@repo_dir, 'descriptions.json')
-    if File.exist?(desc_file)
-      data = JSON.parse(File.read(desc_file))
+    REPOS_FILE = File.join(REPOS_DIR, 'descriptions.json')
+    if File.exist?(REPOS_FILE)
+      data = JSON.parse(File.read(REPOS_FILE))
       @descriptions = {}
       data.each do |name, info|
         @descriptions[name] = info['description']
       end
     else
-      puts "Warning: descriptions.json not found in #{@repo_dir}"
+      puts "Warning: descriptions.json not found in #{REPOS_DIR}"
       @descriptions = {}
     end
   end
@@ -322,7 +323,7 @@ end
 
 if __FILE__ == $0
   if ARGV.empty?
-    abort "Usage: #{$0} REPO_DIR"
+    abort "Usage: #{$0} REPOS_DIR"
   end
 
   analyzer = ScraperAnalyzer.new(ARGV[0])

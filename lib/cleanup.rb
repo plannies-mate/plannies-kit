@@ -5,7 +5,9 @@ Bundler.require
 
 require 'fileutils'
 
-class ReposCleaner
+require_relative 'process_base'
+
+class ReposCleaner < ProcessBase
   DIRS_TO_REMOVE = %w[
     test tests spec specs
     doc docs fixtures expected
@@ -41,15 +43,13 @@ class ReposCleaner
     .doc .docx .xls .xlsx .ppt .pptx
   ]
 
-  def initialize(repo_dir)
-    @repo_dir = repo_dir
-    abort "Directory #{repo_dir} does not exist!" unless Dir.exist?(repo_dir)
+  def initialize
   end
 
   def cleanup
-    puts "Cleaning #{@repo_dir}..."
+    puts "Cleaning #{REPOS_DIR}..."
 
-    Dir.glob(File.join(@repo_dir, '*')).each do |repo_path|
+    Dir.glob(File.join(REPOS_DIR, '*')).each do |repo_path|
       next unless File.directory?(repo_path)
       clean_repo(repo_path)
     end
@@ -127,7 +127,7 @@ end
 
 if __FILE__ == $0
   if ARGV.empty?
-    abort "Usage: #{$0} REPO_DIR"
+    abort "Usage: #{$0} REPOS_DIR"
   end
 
   cleaner = ReposCleaner.new(ARGV[0])

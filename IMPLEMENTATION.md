@@ -1,6 +1,7 @@
 # IMPLEMENTATION
 
 This project's documentation is split across several files:
+
 - GUIDELINES.md - Guidelines for AI assistants and developers
 - SPECS.md - Core requirements and system architecture
 - IMPLEMENTATION.md (this file) - Detailed implementation guidance and algorithms
@@ -41,25 +42,68 @@ FYI (currently) the smallest useful scraper is `HuonValleyDA/scraper.rb` at 25 l
 
 ## Scripts and Their Responsibilities
 
-### download.rb
+### script/clobber
+
+- Removes repos directory
+- Removes `tmp/*` and `log/*` files
+
+### script/process
+
+- creates repos directory
+- Runs all the following ruby scripts in turn (in the order listed below)
+  1. Download repositories
+  2. Validate download output
+  3. Clean repositories
+  4. Validate cleaning of repository dirs
+  5. Analyze code
+  6. Validate analysis
+- saves STDOUT to log/process.log and STDERR to log/process.err as well as passing it to the terminal
+
+### lib/download.rb
 
 - Downloads list of github repositories
 - Supports optional LIMIT parameter for testing
-- Stores repository descriptions in descriptions.json
+- Stores repository descriptions and last updated in `log/repos.json`
 - Skips existing repositories
 
-### cleanup.rb
+### lib/validate/download.rb
+
+Validates:
+
+- At least 40 repositories downloaded (or LIMIT if specified)
+- log/repos.json exists and is valid JSON
+- Each repository has required metadata
+
+### lib/cleanup.rb
 
 - Removes test files, binary files, and test directories
 - Removes .git directories and unnecessary project files
 - Handles common binary file extensions
 
-### analyze.rb
+### lib/validate/cleanup.rb
+
+Validates:
+
+- No test directories remain
+- No binary files remain
+- No .git directories remain
+- Required scraper files still exist in all but at most 5 repos
+
+### lib/analyze.rb
 
 - Analyzes code files for unique terms
 - Extracts and processes URLs
 - Filters words using aspell and COMMON_WORDS
-- Outputs scraper_analysis.js and debug_analysis.json
+- Outputs `log/scraper_analysis.js` and debug_analysis.json
+
+### lib/validate/analyze.rb
+
+Validates:
+
+- Output files exist and are valid
+- Word extraction follows specified rules
+- JSON structure matches requirements
+- All repos are properly classified
 
 ## Status files
 
@@ -67,15 +111,29 @@ These are internal status passed between different stages as well as logs for de
 
 ### Download state
 
-When run download is run it maintains two status files:
+When run download is run it maintains two status files (CONSTANT listed in brackets):
 
-* `log/download_run.json` - Json file with `{ last_run: "date and time" }` - updated if missing or run for all
-* `log/descriptions.json` - json files with hash of name to description, - updates repos downloaded
+* `log/repos.json` - (REPOS_FILE) Json file with hash of repo name (`github_record["name"]`)to:
+    * description - `github_record["description"]`
+    * last_updated - `github_record["lastUpdated"]["timestamp"]` - if it changes then delete the directory and clone the
+      repo again
+    * anything else that is useful for debugging (though ignored by subsequent processing scripts) 
+
+Note - the max of last_updated is passed to "Cricky Whats That?" project for it to query repos
+
+Other constants:
+
+* REPOS_DIR - where repos are cloned to
+* LOG_DIR - where all log files are created (All log files have their own constants to make validation easier)
+
+#### Example of repos.json file
 
 ```json
 {
-  "city_of_sydney": "City of Sydney Development Applications",  
-  "whittlesea": "City of Whittlesea development applications"
+  "city_of_sydney": { "description": "City of Sydney Development Applications",
+   "last_updated": "2019-05-18T00:38:15.692Z"},  
+  "whittlesea": { "description": "City of Whittlesea development applications",
+   "last_updated": "2019-05-02T07:14:14.582Z"}
 }
 ```
 
@@ -118,7 +176,7 @@ processing needs change.
 - Report progress clearly but concisely
 - Output clear error messages with potential solutions
 - clean up any temp files used
-  - Use at_exit hook as needed to ensure process and temp file clean up
+    - Use at_exit hook as needed to ensure process and temp file clean up
 
 ## Code Structure & Style
 
@@ -175,25 +233,4 @@ processing needs change.
 - Words should be commonly found in planning/government contexts
 - Review and update list periodically based on results
 
-## Process Flow
 
-1. Download repositories:
-    - Skip if repos exist and recent
-    - Handle rate limits and pagination
-    - Store descriptions.json
-2. Clean repositories:
-    - Remove docs, test files and binaries
-    - Keep main scraper files
-3. Analyze code:
-    - Find and read scraper files
-    - Extract and normalize words
-    - Filter through aspell
-    - Generate output files
-
-## Quality Checks
-
-- Verify word extraction matches rules exactly
-- Check aspell process cleanup
-- Validate output file formats
-- Confirm repository counts match
-- Ensure proper error handling
