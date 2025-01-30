@@ -57,7 +57,7 @@ FYI (currently) the smallest useful scraper is `HuonValleyDA/scraper.rb` at 25 l
   4. Validate cleaning of repository dirs
   5. Analyze code
   6. Validate analysis
-- saves STDOUT to log/process.log and STDERR to log/process.err as well as passing it to the terminal
+- saves output to log/process.log as well as passing it to the terminal
 
 ### lib/download.rb
 
