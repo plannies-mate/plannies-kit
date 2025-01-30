@@ -40,20 +40,23 @@ main() {
   echo "Step 1: Downloading repositories..."
   # shellcheck disable=SC2086
   lib/download.rb $LIMIT_ARG
+  echo -e "\nStep 2: Validating Download of repositories..."
   # shellcheck disable=SC2086
   lib/validate/download.rb $LIMIT_ARG
 
-  echo -e "\nStep 2: Cleaning repositories..."
+  echo -e "\nStep 3: Cleaning repositories..."
   lib/cleanup.rb
+  echo -e "\nStep 4: Validating Clean of repositories..."
   lib/validate/cleanup.rb
 
-  echo -e "\nStep 3: Analyzing code..."
+  echo -e "\nStep 5: Analyzing code..."
   lib/analyze.rb
+  echo -e "\nStep 6: Validating Analysis of code..."
   lib/validate/analyze.rb
 
   echo -e "\nProcess complete! Check the output above for the extraMatchWords hash."
 }
 
-main "$@" 2> >(tee log/process.err >&2) | tee log/process.log
+main "$@" 2>&1 | tee log/process.log
 
 exit 0
