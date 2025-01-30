@@ -2,17 +2,16 @@
 
 cd "$(dirname "$0")/.." || ( echo "Could not cd to project directory" ; exit 1 )
 
- # shellcheck disable=SC2317
- error_handler() {
+error_handler() {
    local line_no=$1
    local error_code=$2
    local last_command="${BASH_COMMAND}"
    echo "ERROR: line ${line_no} exited with status ${error_code}, command: ${last_command}"
    exit "${error_code:-1}"
- }
+}
 
- set -eo pipefail
- trap 'error_handler ${LINENO} $?' ERR
+set -e
+trap 'error_handler ${LINENO} $?' ERR
 
 main() {
   # Only pass LIMIT if it was actually specified
@@ -24,6 +23,7 @@ main() {
   fi
 
   mkdir -p repos
+  mkdir -p log
 
   echo "Step 1: Downloading repositories..."
   # shellcheck disable=SC2086
@@ -48,6 +48,5 @@ main() {
   echo -e "\nProcess complete!"
 }
 
-main "$@" 2>&1 | tee log/process.log
-
-exit 0
+# Capture output and errors, but still show them
+main "$@" | tee log/process.log
