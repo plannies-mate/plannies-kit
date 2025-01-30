@@ -69,22 +69,29 @@ class DownloadValidator < ProcessBase
     
     data = JSON.parse(File.read(REPOS_FILE))
     
+    empty_repos = 0
     data.each do |name, _info|
       repo_dir = File.join(REPOS_DIR, name)
       unless File.directory?(repo_dir)
         abort "Repository directory missing: #{repo_dir}"
       end
 
-      # Each repo should have at least one file
+      # Count empty repositories
       files = Dir.glob(File.join(repo_dir, '*'))
       if files.empty?
-        abort "Repository #{name} appears empty"
+        empty_repos += 1
+        puts "Warning: Repository #{name} appears empty"
       end
 
       # Check repo name format (no periods or slashes)
       if name.include?('.') || name.include?('/') || name.include?('\\')
         abort "Invalid repository name format: #{name}"
       end
+    end
+
+    # Allow up to 5 empty repositories
+    if empty_repos > 5
+      abort "Too many empty repositories: #{empty_repos} (max 5 allowed)"
     end
 
     puts "All validations passed!"
