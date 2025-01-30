@@ -41,16 +41,20 @@ REPO_DIR="${1:-$PROJECT_ROOT/repos}"
 
   echo "Step 1: Downloading repositories..."
   if [ -n "$LIMIT_ARG" ]; then
-    bundle exec ruby lib/download.rb "$REPO_DIR" "$LIMIT_ARG"
+    lib/download.rb "$REPO_DIR" "$LIMIT_ARG"
+    lib/validate/download.rb "$REPO_DIR" "$LIMIT_ARG"
   else
-    bundle exec ruby lib/download.rb "$REPO_DIR"
+    lib/download.rb "$REPO_DIR"
+    lib/validate/download.rb "$REPO_DIR"
   fi
 
   echo -e "\nStep 2: Cleaning repositories..."
-  bundle exec ruby lib/cleanup.rb "$REPO_DIR"
+  lib/cleanup.rb "$REPO_DIR"
+  lib/validate/cleanup.rb "$REPO_DIR"
 
   echo -e "\nStep 3: Analyzing code..."
-  bundle exec ruby lib/analyze.rb "$REPO_DIR"
+  lib/analyze.rb "$REPO_DIR"
+  lib/validate/analyze.rb "$REPO_DIR"
 
   echo -e "\nProcess complete! Check the output above for the extraMatchWords hash."
   ;

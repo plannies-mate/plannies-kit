@@ -1,5 +1,14 @@
 # Project Guidelines for AI Assistants
 
+This project's documentation is split across several files:
+- GUIDELINES.md (this file) - Guidelines for AI assistants and developers
+- SPECS.md - Core requirements and system architecture
+- IMPLEMENTATION.md - Detailed implementation guidance and algorithms
+
+Please read ALL three files before proceeding.
+
+Note: README.md contains installation and usage instructions which are not relevant for AIs.
+
 ## Purpose
 
 This document guides AI assistants in working on small-to-medium sized data processing tools. For project-specific
@@ -49,7 +58,7 @@ technical details, always refer to SPEC.md.
 - Trying to optimize too early
 - Missing cleanup of external resources
 - Over-commenting obvious code
-- Under-documenting complex logic
+- Under-documenting complex logic (comments explain why, code should explain how)
 
 ## Communication
 
