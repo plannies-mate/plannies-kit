@@ -126,10 +126,6 @@ class ReposCleaner < ProcessBase
 end
 
 if __FILE__ == $0
-  if ARGV.empty?
-    abort "Usage: #{$0} REPOS_DIR"
-  end
-
-  cleaner = ReposCleaner.new(ARGV[0])
+  cleaner = ReposCleaner.new
   cleaner.cleanup
 end
