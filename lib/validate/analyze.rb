@@ -75,7 +75,7 @@ class AnalyzeValidator < ProcessBase
     required_metadata_keys = %w[generated_at repos_analyzed trivial_scrapers_skipped placeholder_scrapers_found no_scraper_file]
 
     required_metadata_keys.each do |key|
-      abort("Error: Missing metadata key #{key}") unless metadata.key?(key.gsub('broken', 'placeholder'))
+      abort("Error: Missing metadata key #{key}") unless metadata.key?(key)
     end
 
     # Check repos structure
