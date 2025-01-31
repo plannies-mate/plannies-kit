@@ -86,11 +86,11 @@ class AnalyzeValidator < ProcessBase
     # Test word extraction against specification
     [
       ['https://www.yarracity.vic.gov.au/MyPlanning-application-xsearch', %w[myplanning xearch]],
-      ['https://www.planning.act.gov.au/development_applications?fromDaste=20251012', %w[fromdate]
+      ['https://www.planning.act.gov.au/development_applications?fromDaste=20251012', %w[fromdate]]
     ].each do |url, expected|
       words = extract_words(url)
-      unless expected.include?(words)
-        abort("Error: Unexpected word extraction result: #{words}, expected one of #{expected.inspect}")
+      unless expected == words
+        abort("Error: extracted #{words.inspect} from #{url}, expected #{expected.inspect}")
       end
     end
   end
