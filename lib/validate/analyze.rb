@@ -49,11 +49,10 @@ class AnalyzeValidator < ProcessBase
 
     datetime_value = datetime_match[1]
     begin
-      # Check if the datetime is in a format parseable by JavaScript Date
-      # ISO 8601 format is preferred for JavaScript
-      parsed_time = Time.parse(datetime_value)
+      # Check if the datetime is in ISO 8601 format
+      parsed_time = Time.iso8601(datetime_value)
       
-      # Ensure it's in ISO 8601 format
+      # Ensure it matches the original input
       unless datetime_value == parsed_time.iso8601
         abort("Error: scraperDateTime not in ISO 8601 format. Current value: #{datetime_value}")
       end
