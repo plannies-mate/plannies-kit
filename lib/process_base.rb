@@ -4,7 +4,7 @@ class ProcessBase
   LOG_DIR = 'log'
   REPOS_FILE = "#{LOG_DIR}/repos.json"
   SCRAPER_ANALYSIS_FILE = "#{LOG_DIR}/scraper_analysis.js"
-  DEBUG_ANALYSIS_FILE = "#{LOG_DIR}/debug_analysis.json"
+  DEBUG_ANALYSIS_FILE = "#{LOG_DIR}/debug_analysis.yml"
   PLACEHOLDER_SCRAPERS_FILE = "#{LOG_DIR}/placeholder_scrapers.txt"
   TRIVIAL_SCRAPERS_FILE = "#{LOG_DIR}/trivial_scrapers.txt"
   NO_SCRAPER_FILE = "#{LOG_DIR}/no_scraper.txt"

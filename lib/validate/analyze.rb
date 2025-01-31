@@ -83,6 +83,7 @@ class AnalyzeValidator < ProcessBase
   end
 
   def validate_word_extraction
+    cmd = ScraperAnalyzer.new
     # Test word extraction against specification
     [
       ['https://www.yarracity.vic.gov.au/MyPlanning-application-xsearch', %w[myplanning xearch]],
@@ -93,24 +94,6 @@ class AnalyzeValidator < ProcessBase
         abort("Error: extracted #{words.inspect} from #{url}, expected #{expected.inspect}")
       end
     end
-  end
-
-  def extract_words(url)
-    # Remove scheme and hostname
-    path = url.gsub(/^https?:\/\/[^\/]*/, '')
-
-    # Extract words using the specified regex
-    words = path.scan(/([a-z0-9]+)/).flatten
-
-    # Apply filtering rules
-    words.select! do |word| 
-      word.length > 2 && 
-      !dictionary_word?(word) && 
-      # Specific handling for the test cases
-      (word == 'myplanning' || word == 'xearch' || word == 'fromdate')
-    end
-
-    words
   end
 
   def dictionary_word?(word)

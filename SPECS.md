@@ -18,6 +18,17 @@ Note: README.md contains installation and usage instructions which are not relev
 * the different stages of processing must be separate so they can be run and validated independently against the
   relevant specifications
 
+## Scraper Language Classification
+
+Detect what language each repo is by the scraper file so you know how to recognize passive lines.
+
+| Language | Scraper file | Comments start with | echo command | import command |
+| Ruby | scraper.rb | # | puts | Bundler.require |
+| PHP | scraper.php | // | echo | require_once |
+| Python | scraper.py | # | print | import |
+| Perl | scraper.pl | # | print | use |
+| Node.js | scraper.js | // | console.log | require |
+
 ### scraper_analysis.js format
 
 This file is the main requirement, as the file is copied to the "Cricky, what's that?" project.
