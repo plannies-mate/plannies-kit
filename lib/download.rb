@@ -191,6 +191,9 @@ class RepoDownloader < ProcessBase
 end
 
 if __FILE__ == $0
+  $stdout.sync = true
+  $stderr.sync = true
+
   downloader = RepoDownloader.new(ARGV[0])
   downloader.download_repos
 end

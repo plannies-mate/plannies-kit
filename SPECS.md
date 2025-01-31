@@ -78,26 +78,33 @@ export const ignoreWords = [
 Both this and the "Cricky Whats That?" projects MUST follow this algorithm so search words match!
 
 Process files by:
-1. lowercase all text
-2. extract all urls in the form: `/https?:\/\/[^'"]+/`
-3. remove the leading scheme and hostname using: `/https?:\/\/[^\/]*/`
-4. extract all sequences of `/([a-z0-9]+)/` which are called words for this project
+1. extract 
+  * all urls in the form: `/https?:\/\/[^'"]+/`
+    - remove the leading scheme and hostname using: `/https?:\/\/[^\/]*/`
+  * extract all single-quoted and double-quoted strings
+2. extract all sequences of `/([-_a-z0-9]+)/i` which are called words for this project
    - Note, this means there is No special handling of
     - camelCase (becomes one word),
-    - snake_case or kebab-case (they are split up into multiple words)
-5. ignore words that are:
+    - snake_case or kebab-case (becomes one word)
+3. ignore words that are:
    - 1 or 2 characters long
    - appear in the COMMON_WORDS list
    - are dictionary words as filtered out by `aspell list`
+4. lowercase all text (after check with `aspell`)
 
 #### Example Word Extraction
 
 ```
 Input URL: https://www.yarracity.vic.gov.au/MyPlanning-application-xsearch
-Extracted words: ["myplanning", "xearch"]
+Extracted words: ["myplanning-application-xearch"]
 
-Input URL: https://www.planning.act.gov.au/development_applications?fromDaste=20251012
-Extracted words: ["fromdate"]
+Input URL: https://www.planning.act.gov.au/program/development_applications?fromDate=20251012
+Extracted words: ["development_applications", fromdate"]
+
+Lines:
+      address: street_address + ", " + a["SUBURB"] + ", ACT",
+      description: a["PROPOSAL_TEXT"],
+Extracted words: ["proposal_text"]
 ```
 
 ## ARCHITECTURE

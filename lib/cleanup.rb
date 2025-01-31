@@ -131,6 +131,9 @@ class ReposCleaner < ProcessBase
 end
 
 if __FILE__ == $0
+  $stdout.sync = true
+  $stderr.sync = true
+
   cleaner = ReposCleaner.new
   cleaner.cleanup
 end

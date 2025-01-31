@@ -1,4 +1,4 @@
-class RepoScanner
+class RepoScanner < ProcessBase
   LANGUAGE_CONFIGS = {
     'scraper.rb' => { comment_start: '#', import_start: 'Bundler.require', echo_cmd: 'puts' },
     'scraper.php' => { comment_start: '//', import_start: 'require_once', echo_cmd: 'echo' },
@@ -17,10 +17,11 @@ class RepoScanner
     TRIVIAL_REASON
   ].freeze
 
-  attr_reader :repo_path, :scraper_file
+  attr_reader :repo_name, :repo_path, :scraper_file
 
-  def initialize(repo_path)
-    @repo_path = repo_path
+  def initialize(repo_name)
+    @repo_name = repo_name
+    @repo_path = File.join(REPOS_DIR, repo_name)
     @scraper_file = detect_scraper_file
     @language_config = LANGUAGE_CONFIGS[File.basename(@scraper_file)] if @scraper_file
   end
@@ -37,25 +38,9 @@ class RepoScanner
       PLACEHOLDER_REASON
     elsif trivial_scraper?
       TRIVIAL_REASON
-    elsif active_scraper?
-      raise "Unable to classify SCRAPER"
+    elsif !active_scraper?
+      raise "Unable to classify SCRAPER #{@repo_name} with scraper file: #{@scraper_file}"
     end
-  end
-
-  def has_scraper?
-    !@scraper_file.nil?
-  end
-
-  def trivial_scraper?
-    has_scraper? && !placeholder_scraper? && active_lines(only_scraper: false).count < 15
-  end
-
-  def placeholder_scraper?
-    has_scraper? && active_lines(only_scraper: true).empty?
-  end
-
-  def active_scraper?
-    has_scraper? && !(placeholder_scraper? || trivial_scraper?)
   end
 
   # active_lines(only_scraper: false)
@@ -75,7 +60,6 @@ class RepoScanner
                     File.read(@scraper_file)
                   else
                     Dir.glob(File.join(@repo_path, '**/*'))
-                       .map { |file| File.read(file) }
                        .map { |file| File.read(file) }
                        .join("\n")
                   end
@@ -100,4 +84,21 @@ class RepoScanner
     end
     nil
   end
+
+  def has_scraper?
+    !@scraper_file.nil?
+  end
+
+  def trivial_scraper?
+    has_scraper? && !placeholder_scraper? && active_lines(only_scraper: false).count < 15
+  end
+
+  def placeholder_scraper?
+    has_scraper? && active_lines(only_scraper: true).empty?
+  end
+
+  def active_scraper?
+    has_scraper? && !(placeholder_scraper? || trivial_scraper?)
+  end
 end
+
