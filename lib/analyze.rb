@@ -254,24 +254,26 @@ class ScraperAnalyzer < ProcessBase
     words
   end
 
+
+
   def output_results(total_repos)
     FileUtils.mkdir_p('log')
 
     # Output lists of different scraper types
     if @broken_scrapers.any?
-      File.write('log/broken_scrapers.txt', @broken_scrapers.sort.join("\n"))
-      puts "\nExcluded #{@broken_scrapers.size} broken scrapers (see log/broken_scrapers.txt)"
+      File.write(BROKEN_SCRAPERS_FILE, @broken_scrapers.sort.join("\n"))
+      puts "\nExcluded #{@broken_scrapers.size} broken scrapers (see #{BROKEN_SCRAPERS_FILE})"
     end
 
     if @results[:repos].any? { |_, r| r[:status] == 'trivial' }
       trivial = @results[:repos].select { |_, r| r[:status] == 'trivial' }.keys.sort
-      File.write('log/trivial_scrapers.txt', trivial.join("\n"))
-      puts "Excluded #{trivial.size} trivial scrapers (see log/trivial_scrapers.txt)"
+      File.write(TRIVIAL_SCRAPERS_FILE, trivial.join("\n"))
+      puts "Excluded #{trivial.size} trivial scrapers (see #{TRIVIAL_SCRAPERS_FILE})"
     end
 
     if @no_scraper_repos.any?
-      File.write('log/no_scraper.txt', @no_scraper_repos.sort.join("\n"))
-      puts "Excluded #{@no_scraper_repos.size} repos without scraper files (see log/no_scraper.txt)"
+      File.write(NO_SCRAPER_FILE, @no_scraper_repos.sort.join("\n"))
+      puts "Excluded #{@no_scraper_repos.size} repos without scraper files (see #{NO_SCRAPER_FILE})"
     end
 
     # Production JS file - only valid scrapers
@@ -292,17 +294,17 @@ class ScraperAnalyzer < ProcessBase
       };
     JS
 
-    File.write('log/scraper_analysis.js', js_content)
-    File.write('log/debug_analysis.json', JSON.pretty_generate(@results))
+    File.write(SCRAPER_ANALYSIS_FILE, js_content)
+    File.write(DEBUG_ANALYSIS_FILE, JSON.pretty_generate(@results))
 
     puts "\n# Analysis Results"
-    puts "Generated log/scraper_analysis.js with active scraper data"
-    puts "Generated log/debug_analysis.json with full analysis"
+    puts "Generated #{SCRAPER_ANALYSIS_FILE} with active scraper data"
+    puts "Generated #{DEBUG_ANALYSIS_FILE} with full analysis"
     puts "Total repositories: #{total_repos}"
     puts "Including #{@results[:valid_repos].size} active scrapers"
-    puts "Excluded #{@results[:metadata][:trivial_scrapers_skipped]} trivial scrapers (see log/trivial_scrapers.txt)"
-    puts "Excluded #{@results[:metadata][:broken_scrapers_found]} broken scrapers (see log/broken_scrapers.txt)"
-    puts "Excluded #{@results[:metadata][:no_scraper_file]} repos without scraper files (see log/no_scraper.txt)"
+    puts "Excluded #{@results[:metadata][:trivial_scrapers_skipped]} trivial scrapers (see #{TRIVIAL_SCRAPERS_FILE})"
+    puts "Excluded #{@results[:metadata][:broken_scrapers_found]} broken scrapers (see #{BROKEN_SCRAPERS_FILE})"
+    puts "Excluded #{@results[:metadata][:no_scraper_file]} repos without scraper files (#{NO_SCRAPER_FILE})"
     puts "Generated at: #{@results[:metadata][:generated_at]}"
 
     # Validation

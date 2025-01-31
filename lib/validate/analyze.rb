@@ -14,6 +14,7 @@ class AnalyzeValidator < ProcessBase
   def validate
     validate_output_files_exist
     validate_scraper_analysis_structure
+    validate_scraper_analysis_values
     validate_debug_analysis_structure
     validate_word_extraction
     puts "Analysis validation passed successfully!"
@@ -30,31 +31,48 @@ class AnalyzeValidator < ProcessBase
 
   def validate_scraper_analysis_structure
     content = JSON.parse(File.read(SCRAPER_ANALYSIS_FILE))
-    
+
     # Basic structure checks
     abort("Error: Missing scraperDateTime") unless content.key?('scraperDateTime')
     abort("Error: Missing scraperData") unless content.key?('scraperData')
     abort("Error: Missing ignoreWords") unless content.key?('ignoreWords')
-    
+
     # Type checks
     abort("Error: scraperDateTime should be string") unless content['scraperDateTime'].is_a?(String)
     abort("Error: scraperData should be Hash") unless content['scraperData'].is_a?(Hash)
     abort("Error: ignoreWords should be Array") unless content['ignoreWords'].is_a?(Array)
   end
 
+  def validate_scraper_analysis_values
+    content = JSON.parse(File.read(SCRAPER_ANALYSIS_FILE))
+
+    abort("Error: scraperDateTime should be string with a parsable date in it") unless Time.parse(content['scraperDateTime'])
+    abort("Error: scraperData should be Hash") unless content['scraperData'].empty?
+    abort("Error: ignoreWords should be Array") unless content['ignoreWords'].empty?
+
+    # Type checks next level down
+    content['scraperData'].each_with_index do |item, index|
+      abort("Error: scraperData[#{index}] should be Hash") unless item.is_a? Hash
+    end
+    content['ignoreWords'].each_with_index do |item, index|
+      abort("Error: ignoreWords[#{index}] should be String, is: #{item.inspect}") unless item.is_a? String
+      abort("Error: ignoreWords[#{index}] should be be lowercase alphanumeric, is: #{item.inspect}") unless item =~ /^[a-z0-9]+$/
+    end
+  end
+
   def validate_debug_analysis_structure
     debug_data = JSON.parse(File.read(DEBUG_ANALYSIS_FILE))
-    
+
     # Check metadata
     metadata = debug_data['metadata']
     abort("Error: Missing metadata") unless metadata
-    
+
     required_metadata_keys = %w[generated_at repos_analyzed trivial_scrapers_skipped broken_scrapers_found no_scraper_file]
-    
+
     required_metadata_keys.each do |key|
       abort("Error: Missing metadata key #{key}") unless metadata.key?(key)
     end
-    
+
     # Check repos structure
     abort("Error: Missing repos in debug analysis") unless debug_data['repos']
   end
@@ -72,14 +90,14 @@ class AnalyzeValidator < ProcessBase
   def extract_words(url)
     # Remove scheme and hostname
     path = url.gsub(/^https?:\/\/[^\/]*/, '')
-    
+
     # Extract words
     words = path.scan(/([a-z0-9]+)/).flatten
-    
+
     # Filter words
     words.reject! { |word| word.length <= 2 }
     words.reject! { |word| dictionary_word?(word) }
-    
+
     words
   end
 
