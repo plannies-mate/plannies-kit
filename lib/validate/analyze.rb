@@ -9,15 +9,17 @@ require 'open3'
 require 'time'
 
 require_relative '../process_base'
+require_relative '../analyze'
+require_relative 'repo_scanner'
 
 class AnalyzeValidator < ProcessBase
-
   def validate
     validate_output_files_exist
     validate_scraper_analysis_structure
     validate_scraper_analysis_values
     validate_debug_analysis_structure
     validate_word_extraction
+    validate_repo_classifications
     puts "Analysis validation passed successfully!"
   end
 
@@ -94,6 +96,28 @@ class AnalyzeValidator < ProcessBase
         abort("Error: extracted #{words.inspect} from #{url}, expected #{expected.inspect}")
       end
     end
+  end
+
+  def validate_repo_classifications
+    debug_data = JSON.parse(File.read(DEBUG_ANALYSIS_FILE))
+    repos = debug_data['repos']
+
+    # Validate presence of different repo types
+    classifications = repos.values.map { |repo| repo['status'] }
+
+    assert classifications.include?('active'), 
+      "No active scrapers found in analysis"
+    assert classifications.include?('placeholder'), 
+      "No placeholder scrapers found in analysis"
+    assert classifications.include?('trivial'), 
+      "No trivial scrapers found in analysis"
+    assert classifications.include?('no_scraper'), 
+      "No repos without scrapers found in analysis"
+  end
+
+  # Assertion method
+  def assert(condition, message = nil)
+    raise StandardError, message unless condition
   end
 
   def dictionary_word?(word)
