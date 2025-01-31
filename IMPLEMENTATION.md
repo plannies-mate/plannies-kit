@@ -19,16 +19,35 @@ Based on language detected - see "Scraper Language Classification" in SPECS.md
 
 ## STATUS Files
 
-### `log/rpos.json`
-- Created by download for future stages
+### `log/repos.yml`
+- Created by download for future stages, does not include archived repos
+- contains all the data used internally by download
 
-### `log/debug_analysis.yml`
+### `log/analysis_results.yml`
 - Logs what analyse determined to assist in debugging
 - not read by code, just humans
-  - Detailed repository analysis
-  - Metadata about processing
-  - Classification information
-
+- is a dump of the internal @results data created and reported on within analyze
+```yaml
+---
+   generated_at: "iso8601 time"
+   stats:
+     active: 4
+     no_scraper: 3
+     trivial: 2
+     placeholder: 1  
+   ignored_repos:
+    "alerts":
+      description: "github desc"
+      reason: "no_scraper"
+   active_repos:
+     "multiple_icon":
+       description: "github desc"
+       words:
+         - "word1"
+         - "word2"
+       urls:
+         - "http://some.council.au/program/path/daQuery.do"
+```
 ## Performance Considerations
 - Efficient word extraction
 - Minimal external command usage
@@ -41,4 +60,3 @@ Based on language detected - see "Scraper Language Classification" in SPECS.md
 - Explicit error handling (Fail fast)
 - Sufficient logging
 - Tests are informative when they fail, not just asserting a boolean condition
-

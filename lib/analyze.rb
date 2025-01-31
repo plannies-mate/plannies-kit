@@ -22,23 +22,21 @@ class ScraperAnalyzer < ProcessBase
 
   def initialize
     abort "Directory #{REPOS_DIR} does not exist!" unless Dir.exist?(REPOS_DIR)
-    load_descriptions
-    @placeholder_scrapers = []
-    @no_scraper_repos = []
+    @results = {}
   end
 
   def analyze
     @results = {
-      metadata: {
-        generated_at: Time.now.utc.iso8601,
-        repos_analyzed: 0,
-        trivial_scrapers_skipped: 0,
-        placeholder_scrapers_found: 0,
-        no_scraper_file: 0
+      generated_at: Time.now.utc.iso8601,
+      stats: {
+        active: 0
       },
-      repos: {},
-      valid_repos: {}
+      ignored_repos: {},
+      active_repos: {}
     }
+    RepoScanner::IGNORE_REASONS.each do |reason|
+      @results[:stats][reason.to_sym] = 0
+    end
 
     all_repos = Dir.glob(File.join(REPOS_DIR, '*')).sort
     total_repos = all_repos.count { |path| File.directory?(path) && File.basename(path) != '.git' }
@@ -77,14 +75,12 @@ class ScraperAnalyzer < ProcessBase
 
   private
 
-  def load_descriptions
-    if File.exist?(REPOS_FILE)
-      data = JSON.parse(File.read(REPOS_FILE))
-      @descriptions = data.transform_values { |info| info['description'] }
-    else
-      puts "Warning: #{REPOS_FILE} not found!"
-      @descriptions = {}
-    end
+  def repos
+    @repos ||= YAML.load_file REPOS_FILE
+  end
+
+  def descriptions
+    @descriptions ||= repos.transform_values { |info| info['description'] }
   end
 
   def analyze_repo(repo_path)
@@ -117,101 +113,32 @@ class ScraperAnalyzer < ProcessBase
     end
   end
 
-  def analyze_repo(repo_path)
-    repo_name = File.basename(repo_path)
-    puts "\nAnalyzing #{repo_name}..."
 
-    scraper_file = find_scraper_file(repo_path)
-    unless scraper_file
-      handle_no_scraper_repo(repo_name, repo_path)
-      return
-    end
-
-    begin
-      content = File.read(scraper_file)
-      main_lines = analyze_scraper_content(content)
-      all_lines = count_ruby_files_lines(repo_path)
-
-      if is_placeholder_scraper?(main_lines)
-        handle_placeholder_scraper(repo_name, main_lines, all_lines)
-        return
-      end
-
-      unless should_analyze_scraper?(all_lines)
-        handle_trivial_scraper(repo_name, main_lines, all_lines)
-        return
-      end
-
-      process_active_scraper(repo_name, content, main_lines, all_lines)
-    rescue => e
-      puts "  Error analyzing #{repo_name}: #{e.message}"
-    end
-  end
-
-  def handle_no_scraper_repo(repo_name, repo_path)
-    @no_scraper_repos << repo_name
-    @results[:metadata][:no_scraper_file] += 1
-    @results[:repos][repo_name] = {
+  def handle_ignored_repo(repo_name, reason)
+    @results[:stats][reason.to_sym] += 1
+    @results[:ignored_repos][repo_name] = {
       name: repo_name,
-      description: @descriptions[repo_name],
-      status: 'no_scraper',
-      main_line_count: 0,
-      total_line_count: count_ruby_files_lines(repo_path).length
+      description: descriptions[repo_name],
+      status: reason
     }
   end
 
-  def is_placeholder_scraper?(lines)
-    return false unless lines.any? { |l| l.include?('Bundler.require') }
-    (lines - lines.select { |l| l.include?('Bundler.require') }).all? { |l| l.strip =~ /^\s*puts\s/ }
-  end
-
-  def handle_placeholder_scraper(repo_name, main_lines, all_lines)
-    @placeholder_scrapers << repo_name
-    @results[:metadata][:placeholder_scrapers_found] += 1
-    @results[:repos][repo_name] = {
-      name: repo_name,
-      description: @descriptions[repo_name],
-      status: 'placeholder',
-      main_line_count: main_lines.length,
-      total_line_count: all_lines.length
-    }
-  end
-
-  def should_analyze_scraper?(lines)
-    lines.length >= 15 # Simplified threshold for all languages
-  end
-
-  def handle_trivial_scraper(repo_name, main_lines, all_lines)
-    @results[:metadata][:trivial_scrapers_skipped] += 1
-    @results[:repos][repo_name] = {
-      name: repo_name,
-      description: @descriptions[repo_name],
-      status: 'trivial',
-      main_line_count: main_lines.length,
-      total_line_count: all_lines.length
-    }
-  end
-
-  def process_active_scraper(repo_name, content, main_lines, all_lines)
+  def process_active_scraper(repo_name, content)
     urls = extract_urls(content)
     words = extract_words(content)
     repo_data = {
       name: repo_name,
-      description: @descriptions[repo_name],
+      description: descriptions[repo_name],
       status: 'active',
       urls: urls.sort,
-      words: words.sort,
-      main_line_count: main_lines.length,
-      total_line_count: all_lines.length
+      words: words.sort
     }
 
-    @results[:repos][repo_name] = repo_data
     @results[:valid_repos][repo_name] = repo_data
-    @results[:metadata][:repos_analyzed] += 1
+    @results[:stats][:active] += 1
   end
 
   def output_results(total_repos)
-    require_relative 'scraper_analysis_output_generator'
     output_generator = ScraperAnalysisOutputGenerator.new(@results, total_repos)
     output_generator.generate_output_files
   end

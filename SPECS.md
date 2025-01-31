@@ -151,46 +151,22 @@ An example of two records is as follows:
       {
         "type": "Public",
         "name": "bawbaw",
-        "owner": "planningalerts-scrapers",
-        "isFork": true,
         "description": "Baw Baw Shire Council Planning Applications",
-        "allTopics": [],
-        "primaryLanguage": {
-          "name": "Ruby",
-          "color": "#701516"
-        },
-        "pullRequestCount": 0,
-        "issueCount": 0,
-        "starsCount": 0,
-        "forksCount": 2,
-        "license": null,
-        "participation": null,
         "lastUpdated": {
           "hasBeenPushedTo": true,
           "timestamp": "2019-05-18T00:38:15.692Z"
-        }
+        },
+        ...
       },
       {
         "type": "Public",
         "name": "townsville",
-        "owner": "planningalerts-scrapers",
-        "isFork": false,
         "description": "Townsville City Council Development Applications",
-        "allTopics": [],
-        "primaryLanguage": {
-          "name": "PHP",
-          "color": "#4F5D95"
-        },
-        "pullRequestCount": 0,
-        "issueCount": 0,
-        "starsCount": 1,
-        "forksCount": 7,
-        "license": null,
-        "participation": null,
         "lastUpdated": {
           "hasBeenPushedTo": true,
           "timestamp": "2019-05-07T23:08:34.542Z"
-        }
+        },
+        ...
       }
     ]
   }

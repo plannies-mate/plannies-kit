@@ -3,6 +3,7 @@ GEM
   specs:
     fileutils (1.7.3)
     json (2.9.1)
+    yaml (0.3.0)
 
 PLATFORMS
   ruby
@@ -11,6 +12,7 @@ PLATFORMS
 DEPENDENCIES
   fileutils
   json
+  yaml
 
 RUBY VERSION
    ruby 3.3.7p123

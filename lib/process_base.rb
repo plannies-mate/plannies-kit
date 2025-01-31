@@ -1,13 +1,14 @@
+# frozen_string_literal: true
+
+Bundler.require
+
 class ProcessBase
   REPOS_DIR = 'repos'
 
   LOG_DIR = 'log'
-  REPOS_FILE = "#{LOG_DIR}/repos.json"
+  REPOS_FILE = "#{LOG_DIR}/repos.yml"
   SCRAPER_ANALYSIS_FILE = "#{LOG_DIR}/scraper_analysis.js"
-  DEBUG_ANALYSIS_FILE = "#{LOG_DIR}/debug_analysis.yml"
-  PLACEHOLDER_SCRAPERS_FILE = "#{LOG_DIR}/placeholder_scrapers.txt"
-  TRIVIAL_SCRAPERS_FILE = "#{LOG_DIR}/trivial_scrapers.txt"
-  NO_SCRAPER_FILE = "#{LOG_DIR}/no_scraper.txt"
+  ANALYSIS_RESULTS_FILE = "#{LOG_DIR}/analysis_results.yml"
 
   DOWNLOAD_OUTPUT_FILES = [
     REPOS_FILE
@@ -15,10 +16,7 @@ class ProcessBase
 
   ANALYSIS_OUTPUT_FILES = [
     SCRAPER_ANALYSIS_FILE,
-    DEBUG_ANALYSIS_FILE,
-    PLACEHOLDER_SCRAPERS_FILE,
-    TRIVIAL_SCRAPERS_FILE,
-    NO_SCRAPER_FILE
+    ANALYSIS_RESULTS_FILE
   ].freeze
 
   def initialize

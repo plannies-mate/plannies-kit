@@ -20,7 +20,7 @@ class RepoScannerValidator < ProcessBase
 
   def test_repo_classifications
     # Test no_scraper repos
-    no_scraper_repos = ['issues', 'planningalerts_xml_feed', 'test-issues']
+    no_scraper_repos = %w[issues planningalerts_xml_feed test-issues]
     no_scraper_repos.each do |repo_name|
       repo_path = File.join(REPOS_DIR, repo_name)
       next unless File.directory?(repo_path)

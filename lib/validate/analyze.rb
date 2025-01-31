@@ -69,7 +69,7 @@ class AnalyzeValidator < ProcessBase
   end
 
   def validate_debug_analysis_structure
-    debug_data = JSON.parse(File.read(DEBUG_ANALYSIS_FILE))
+    debug_data = JSON.parse(File.read(ANALYSIS_RESULTS_FILE))
 
     # Check metadata
     metadata = debug_data['metadata']
@@ -92,7 +92,7 @@ class AnalyzeValidator < ProcessBase
       ['https://www.yarracity.vic.gov.au/MyPlanning-application-xsearch', %w[myplanning xearch]],
       ['https://www.planning.act.gov.au/development_applications?fromDaste=20251012', %w[fromdate]]
     ].each do |url, expected|
-      words = extract_words(url)
+      words = cmd.extract_words(url)
       unless expected == words
         abort("Error: extracted #{words.inspect} from #{url}, expected #{expected.inspect}")
       end
@@ -111,7 +111,7 @@ class AnalyzeValidator < ProcessBase
     end
 
     # Read the debug analysis file
-    debug_data = JSON.parse(File.read(DEBUG_ANALYSIS_FILE))
+    debug_data = JSON.parse(File.read(ANALYSIS_RESULTS_FILE))
     repos = debug_data['repos']
 
     # Validate presence of different repo types

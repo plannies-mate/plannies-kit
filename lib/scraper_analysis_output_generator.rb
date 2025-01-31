@@ -43,13 +43,13 @@ class ScraperAnalysisOutputGenerator
   end
 
   def generate_debug_file
-    File.write(ProcessBase::DEBUG_ANALYSIS_FILE, JSON.pretty_generate(@results))
+    File.write(ProcessBase::ANALYSIS_RESULTS_FILE, JSON.pretty_generate(@results))
   end
 
   def print_analysis_results
     puts "\n# Analysis Results"
     puts "Generated #{ProcessBase::SCRAPER_ANALYSIS_FILE} with active scraper data"
-    puts "Generated #{ProcessBase::DEBUG_ANALYSIS_FILE} with full analysis"
+    puts "Generated #{ProcessBase::ANALYSIS_RESULTS_FILE} with full analysis"
     puts "Total repositories: #{@total_repos}"
     puts "Including #{@results[:valid_repos].size} active scrapers"
     puts "Excluded #{@results[:metadata][:trivial_scrapers_skipped]} trivial scrapers (see #{ProcessBase::TRIVIAL_SCRAPERS_FILE})"
