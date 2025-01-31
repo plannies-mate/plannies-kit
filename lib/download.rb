@@ -20,6 +20,11 @@ class RepoDownloader < ProcessBase
   end
 
   def download_repos
+    # Remove analysis output files before starting download
+    ANALYSIS_OUTPUT_FILES.each do |file|
+      FileUtils.rm_f(file)
+    end
+
     repos = fetch_repo_list
     total_repos = @limit ? [@limit, repos.size].min : repos.size
     puts "Processing #{total_repos} out of #{repos.size} active repositories#{" (LIMIT=#{@limit})" if @limit}"
