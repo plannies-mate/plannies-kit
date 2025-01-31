@@ -20,7 +20,7 @@ class RepoDownloader < ProcessBase
   end
 
   def download_repos
-    # Remove analysis output files before starting download
+    # Remove download and analysis output files before starting download
     ANALYSIS_OUTPUT_FILES.each do |file|
       FileUtils.rm_f(file)
     end

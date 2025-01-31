@@ -6,6 +6,7 @@ Bundler.require
 require 'json'
 require 'set'
 require 'open3'
+require 'time'
 
 require_relative '../process_base'
 
@@ -50,7 +51,7 @@ class AnalyzeValidator < ProcessBase
     datetime_value = datetime_match[1]
     begin
       # Check if the datetime is in ISO 8601 format
-      parsed_time = Time.parse(datetime_value)
+      parsed_time = Time.iso8601(datetime_value)
       
       # Ensure it matches the original input
       unless datetime_value == parsed_time.iso8601
@@ -83,11 +84,14 @@ class AnalyzeValidator < ProcessBase
 
   def validate_word_extraction
     # Test word extraction against specification
-    test_urls = %w[https://www.yarracity.vic.gov.au/MyPlanning-application-xsearch https://www.planning.act.gov.au/development_applications?fromDaste=20251012]
-
-    test_urls.each do |url|
+    [
+      ['https://www.yarracity.vic.gov.au/MyPlanning-application-xsearch', %w[myplanning xearch]],
+      ['https://www.planning.act.gov.au/development_applications?fromDaste=20251012', %w[fromdate]
+    ].each do |url, expected|
       words = extract_words(url)
-      validate_extracted_words(words)
+      unless expected.include?(words)
+        abort("Error: Unexpected word extraction result: #{words}, expected one of #{expected.inspect}")
+      end
     end
   end
 
@@ -109,17 +113,6 @@ class AnalyzeValidator < ProcessBase
     # Use aspell to check if word is in dictionary
     stdout, _, status = Open3.capture3("echo #{word} | aspell list")
     status.success? && stdout.strip.empty?
-  end
-
-  def validate_extracted_words(words)
-    case words
-    when %w[myplanning xearch]
-      true
-    when %w[fromdate]
-      true
-    else
-      abort("Error: Unexpected word extraction result: #{words}")
-    end
   end
 end
 

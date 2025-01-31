@@ -9,8 +9,11 @@ class ProcessBase
   TRIVIAL_SCRAPERS_FILE = "#{LOG_DIR}/trivial_scrapers.txt"
   NO_SCRAPER_FILE = "#{LOG_DIR}/no_scraper.txt"
 
+  DOWNLOAD_OUTPUT_FILES = [
+    REPOS_FILE
+  ].freeze
+
   ANALYSIS_OUTPUT_FILES = [
-    REPOS_FILE,
     SCRAPER_ANALYSIS_FILE,
     DEBUG_ANALYSIS_FILE,
     PLACEHOLDER_SCRAPERS_FILE,

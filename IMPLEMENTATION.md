@@ -65,6 +65,7 @@ FYI (currently) the smallest useful scraper is `HuonValleyDA/scraper.rb` at 25 l
 - Supports optional LIMIT parameter for testing
 - Stores repository descriptions and last updated in `log/repos.json`
 - Skips existing repositories
+- Removes the `ANALYSIS_OUTPUT_FILES` (Constant in `lib/process_base.rb`)
 
 ### lib/validate/download.rb
 
@@ -79,6 +80,7 @@ Validates:
 - Removes test files, binary files, and test directories
 - Removes .git directories and unnecessary project files
 - Handles common binary file extensions
+- Removes the `ANALYSIS_OUTPUT_FILES` (Constant in `lib/process_base.rb`)
 
 ### lib/validate/cleanup.rb
 
