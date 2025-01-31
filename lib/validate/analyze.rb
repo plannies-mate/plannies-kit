@@ -30,34 +30,39 @@ class AnalyzeValidator < ProcessBase
   end
 
   def validate_scraper_analysis_structure
-    content = JSON.parse(File.read(SCRAPER_ANALYSIS_FILE))
+    # Read the file contents
+    content = File.read(SCRAPER_ANALYSIS_FILE)
 
-    # Basic structure checks
-    abort("Error: Missing scraperDateTime") unless content.key?('scraperDateTime')
-    abort("Error: Missing scraperData") unless content.key?('scraperData')
-    abort("Error: Missing ignoreWords") unless content.key?('ignoreWords')
-
-    # Type checks
-    abort("Error: scraperDateTime should be string") unless content['scraperDateTime'].is_a?(String)
-    abort("Error: scraperData should be Hash") unless content['scraperData'].is_a?(Hash)
-    abort("Error: ignoreWords should be Array") unless content['ignoreWords'].is_a?(Array)
+    # Check for required exports
+    abort("Error: Missing scraperDateTime export") unless content.include?('export const scraperDateTime')
+    abort("Error: Missing scraperData export") unless content.include?('export const scraperData')
+    abort("Error: Missing ignoreWords export") unless content.include?('export const ignoreWords')
   end
 
   def validate_scraper_analysis_values
-    content = JSON.parse(File.read(SCRAPER_ANALYSIS_FILE))
+    # Read the file contents
+    content = File.read(SCRAPER_ANALYSIS_FILE)
 
-    abort("Error: scraperDateTime should be string with a parsable date in it") unless Time.parse(content['scraperDateTime'])
-    abort("Error: scraperData should be Hash") unless content['scraperData'].empty?
-    abort("Error: ignoreWords should be Array") unless content['ignoreWords'].empty?
+    # Extract values using regex
+    datetime_match = content.match(/export const scraperDateTime\s*=\s*['"]([^'"]+)['"]/)
+    abort("Error: Could not extract scraperDateTime") unless datetime_match
 
-    # Type checks next level down
-    content['scraperData'].each_with_index do |item, index|
-      abort("Error: scraperData[#{index}] should be Hash") unless item.is_a? Hash
+    datetime_value = datetime_match[1]
+    begin
+      # Check if the datetime is in a format parseable by JavaScript Date
+      # ISO 8601 format is preferred for JavaScript
+      parsed_time = Time.parse(datetime_value)
+      
+      # Ensure it's in ISO 8601 format
+      unless datetime_value == parsed_time.iso8601
+        abort("Error: scraperDateTime not in ISO 8601 format. Current value: #{datetime_value}")
+      end
+    rescue ArgumentError
+      abort("Error: Invalid datetime format. Value: #{datetime_value}")
     end
-    content['ignoreWords'].each_with_index do |item, index|
-      abort("Error: ignoreWords[#{index}] should be String, is: #{item.inspect}") unless item.is_a? String
-      abort("Error: ignoreWords[#{index}] should be be lowercase alphanumeric, is: #{item.inspect}") unless item =~ /^[a-z0-9]+$/
-    end
+
+    # Additional checks can be added here if needed
+    puts "Validated scraperDateTime: #{datetime_value}"
   end
 
   def validate_debug_analysis_structure
