@@ -20,13 +20,29 @@ Based on language detected - see "Scraper Language Classification" in SPECS.md
 ## STATUS Files
 
 ### `log/repos.yml`
+ 
 - Created by download for future stages, does not include archived repos
 - contains all the data used internally by download
 
+```yaml
+---
+Brimbank_City_Council:
+  description: Planning applications in Brimbank City Council, Victoria
+  last_updated: '2024-07-18T05:10:54.712Z'
+northern_territory:
+  description: Northern Territory Development Applications
+  last_updated: '2024-07-16T03:46:42.235Z'
+act:
+  description: ''
+  last_updated: '2024-04-22T04:03:04.483Z'
+```
+
 ### `log/analysis_results.yml`
+- 
 - Logs what analyse determined to assist in debugging
 - not read by code, just humans
 - is a dump of the internal @results data created and reported on within analyze
+
 ```yaml
 ---
    generated_at: "iso8601 time"
@@ -48,6 +64,7 @@ Based on language detected - see "Scraper Language Classification" in SPECS.md
        urls:
          - "http://some.council.au/program/path/daQuery.do"
 ```
+
 ## Performance Considerations
 - Efficient word extraction
 - Minimal external command usage
