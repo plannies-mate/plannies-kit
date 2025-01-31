@@ -87,7 +87,7 @@ Validates:
 - No test directories remain
 - No binary files remain
 - No .git directories remain
-- Required scraper files still exist in all but at most 5 repos
+- Required scraper files still exist in all EXCEPT at most 5 repos
 
 ### lib/analyze.rb
 
