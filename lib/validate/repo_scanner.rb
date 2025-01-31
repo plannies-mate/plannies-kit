@@ -12,10 +12,52 @@ class RepoScannerValidator < ProcessBase
     validate_line_classification
     validate_placeholder_detection
     validate_trivial_detection
+    test_repo_classifications
     puts "Repo Scanner validation passed successfully!"
   end
 
   private
+
+  def test_repo_classifications
+    # Test no_scraper repos
+    no_scraper_repos = ['issues', 'planningalerts_xml_feed', 'test-issues']
+    no_scraper_repos.each do |repo_name|
+      repo_path = File.join(REPOS_DIR, repo_name)
+      next unless File.directory?(repo_path)
+      
+      scanner = RepoScanner.new(repo_path)
+      refute scanner.has_scraper?, "#{repo_name} should not have a scraper"
+      refute scanner.active_scraper?, "#{repo_name} should not be an active scraper"
+      refute scanner.placeholder_scraper?, "#{repo_name} should not be a placeholder scraper"
+      refute scanner.trivial_scraper?, "#{repo_name} should not be a trivial scraper"
+    end
+
+    # Test placeholder repos
+    placeholder_repos = ['cootamundra', 'yass']
+    placeholder_repos.each do |repo_name|
+      repo_path = File.join(REPOS_DIR, repo_name)
+      next unless File.directory?(repo_path)
+      
+      scanner = RepoScanner.new(repo_path)
+      assert scanner.has_scraper?, "#{repo_name} should have a scraper"
+      assert scanner.placeholder_scraper?, "#{repo_name} should be a placeholder scraper"
+      refute scanner.active_scraper?, "#{repo_name} should not be an active scraper"
+      refute scanner.trivial_scraper?, "#{repo_name} should not be a trivial scraper"
+    end
+
+    # Test trivial repos
+    trivial_repos = ['KingboroughCouncil', 'bankstown', 'launceston', 'townsville']
+    trivial_repos.each do |repo_name|
+      repo_path = File.join(REPOS_DIR, repo_name)
+      next unless File.directory?(repo_path)
+      
+      scanner = RepoScanner.new(repo_path)
+      assert scanner.has_scraper?, "#{repo_name} should have a scraper"
+      assert scanner.trivial_scraper?, "#{repo_name} should be a trivial scraper"
+      refute scanner.active_scraper?, "#{repo_name} should not be an active scraper"
+      refute scanner.placeholder_scraper?, "#{repo_name} should not be a placeholder scraper"
+    end
+  end
 
   def validate_scraper_detection
     # Test various scenarios of scraper detection
