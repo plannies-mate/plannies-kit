@@ -117,7 +117,7 @@ class RepoDownloader < ProcessBase
   end
 
   def load_cached_descriptions
-    JSON.parse(File.read(REPOS_FILE)).map do |name, info|
+    YAML.load_file(REPOS_FILE).map do |name, info|
       { 'name' => name, 'description' => info['description'] }
     end
   end
