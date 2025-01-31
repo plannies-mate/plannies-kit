@@ -10,8 +10,6 @@ require 'open3'
 require_relative '../process_base'
 
 class AnalyzeValidator < ProcessBase
-  SCRAPER_ANALYSIS_FILE = 'log/scraper_analysis.js'
-  DEBUG_ANALYSIS_FILE = 'log/debug_analysis.json'
 
   def validate
     validate_output_files_exist
@@ -24,8 +22,9 @@ class AnalyzeValidator < ProcessBase
   private
 
   def validate_output_files_exist
-    [SCRAPER_ANALYSIS_FILE, DEBUG_ANALYSIS_FILE].each do |file|
+    ANALYSIS_OUTPUT_FILES.each do |file|
       abort("Error: Output file #{file} does not exist") unless File.exist?(file)
+      abort("Error: Output file #{file} has no content") unless File.size?(file)
     end
   end
 
@@ -36,6 +35,16 @@ class AnalyzeValidator < ProcessBase
     abort("Error: Missing scraperDateTime") unless content.include?('scraperDateTime')
     abort("Error: Missing scraperData") unless content.include?('scraperData')
     abort("Error: Missing ignoreWords") unless content.include?('ignoreWords')
+    abort("Error: scraperDateTime should be string") unless content['scraperDateTime'].is_a? String
+    abort("Error: scraperData should be list") unless content['scraperData'].is_a? Array
+    content['scraperData'].each_with_index do |item, index|
+      abort("Error: scraperData[#{index}] should be Hash") unless item.is_a? Hash
+    end
+    abort("Error: ignoreWords should be List") unless content['ignoreWords'].is_a? Array
+    content['ignoreWords'].each_with_index do |item, index|
+      abort("Error: ignoreWords[#{index}] should be String, is: #{item.inspect}") unless item.is_a? String
+      abort("Error: ignoreWords[#{index}] should be be lowercase alphanumeric, is: #{item.inspect}") unless item =~ /^[a-z0-9]+$/
+    end
   end
 
   def validate_debug_analysis_structure
@@ -45,13 +54,7 @@ class AnalyzeValidator < ProcessBase
     metadata = debug_data['metadata']
     abort("Error: Missing metadata") unless metadata
     
-    required_metadata_keys = [
-      'generated_at', 
-      'repos_analyzed', 
-      'trivial_scrapers_skipped', 
-      'broken_scrapers_found', 
-      'no_scraper_file'
-    ]
+    required_metadata_keys = %w[generated_at repos_analyzed trivial_scrapers_skipped broken_scrapers_found no_scraper_file]
     
     required_metadata_keys.each do |key|
       abort("Error: Missing metadata key #{key}") unless metadata.key?(key)
@@ -63,10 +66,7 @@ class AnalyzeValidator < ProcessBase
 
   def validate_word_extraction
     # Test word extraction against specification
-    test_urls = [
-      'https://www.yarracity.vic.gov.au/MyPlanning-application-xsearch',
-      'https://www.planning.act.gov.au/development_applications?fromDaste=20251012'
-    ]
+    test_urls = %w[https://www.yarracity.vic.gov.au/MyPlanning-application-xsearch https://www.planning.act.gov.au/development_applications?fromDaste=20251012]
 
     test_urls.each do |url|
       words = extract_words(url)
@@ -96,9 +96,9 @@ class AnalyzeValidator < ProcessBase
 
   def validate_extracted_words(words)
     case words
-    when ['myplanning', 'xearch']
+    when %w[myplanning xearch]
       true
-    when ['fromdate']
+    when %w[fromdate]
       true
     else
       abort("Error: Unexpected word extraction result: #{words}")
