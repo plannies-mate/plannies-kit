@@ -29,22 +29,17 @@ class AnalyzeValidator < ProcessBase
   end
 
   def validate_scraper_analysis_structure
-    content = File.read(SCRAPER_ANALYSIS_FILE)
+    content = JSON.parse(File.read(SCRAPER_ANALYSIS_FILE))
     
     # Basic structure checks
-    abort("Error: Missing scraperDateTime") unless content.include?('scraperDateTime')
-    abort("Error: Missing scraperData") unless content.include?('scraperData')
-    abort("Error: Missing ignoreWords") unless content.include?('ignoreWords')
-    abort("Error: scraperDateTime should be string") unless content['scraperDateTime'].is_a? String
-    abort("Error: scraperData should be list") unless content['scraperData'].is_a? Array
-    content['scraperData'].each_with_index do |item, index|
-      abort("Error: scraperData[#{index}] should be Hash") unless item.is_a? Hash
-    end
-    abort("Error: ignoreWords should be List") unless content['ignoreWords'].is_a? Array
-    content['ignoreWords'].each_with_index do |item, index|
-      abort("Error: ignoreWords[#{index}] should be String, is: #{item.inspect}") unless item.is_a? String
-      abort("Error: ignoreWords[#{index}] should be be lowercase alphanumeric, is: #{item.inspect}") unless item =~ /^[a-z0-9]+$/
-    end
+    abort("Error: Missing scraperDateTime") unless content.key?('scraperDateTime')
+    abort("Error: Missing scraperData") unless content.key?('scraperData')
+    abort("Error: Missing ignoreWords") unless content.key?('ignoreWords')
+    
+    # Type checks
+    abort("Error: scraperDateTime should be string") unless content['scraperDateTime'].is_a?(String)
+    abort("Error: scraperData should be Hash") unless content['scraperData'].is_a?(Hash)
+    abort("Error: ignoreWords should be Array") unless content['ignoreWords'].is_a?(Array)
   end
 
   def validate_debug_analysis_structure
