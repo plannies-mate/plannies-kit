@@ -12,6 +12,9 @@ require_relative 'process_base'
 class RepoDownloader < ProcessBase
   SECONDS_PER_WEEK = 7 * 24 * 60 * 60
   GITHUB_REPOS_URL = "https://github.com/orgs/planningalerts-scrapers/repositories.json?q=archived%3Afalse"
+  
+  # Load private repos from multis.yml
+  PRIVATE_REPOS_FILE = File.join('config', 'multis.yml')
 
   def initialize(limit = nil)
     @limit = limit ? limit.to_i : nil
