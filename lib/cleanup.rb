@@ -47,6 +47,11 @@ class ReposCleaner < ProcessBase
   end
 
   def cleanup
+    # Remove analysis output files before starting cleanup
+    ANALYSIS_OUTPUT_FILES.each do |file|
+      FileUtils.rm_f(file)
+    end
+
     puts "Cleaning #{REPOS_DIR}..."
 
     Dir.glob(File.join(REPOS_DIR, '*')).each do |repo_path|
