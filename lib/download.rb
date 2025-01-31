@@ -145,18 +145,34 @@ class RepoDownloader < ProcessBase
       page += 1
     end
 
+    # Merge with private repos from multis.yml
+    private_repos = load_private_repos
+    all_repos.concat(private_repos)
+
     # Save descriptions to file
     descriptions = {}
     all_repos.each do |repo|
       descriptions[repo['name']] = {
-        'description' => repo['description'],
-        'last_updated' => repo['lastUpdated']['timestamp']
+        'description' => repo['description'] || '',
+        'last_updated' => repo['lastUpdated']&.dig('timestamp') || repo['last_updated'] || Time.now.iso8601
       }
     end
     FileUtils.mkdir_p(File.dirname(REPOS_FILE))
     File.write(REPOS_FILE, YAML.dump(descriptions))
 
     all_repos
+  end
+
+  def load_private_repos
+    return [] unless File.exist?(PRIVATE_REPOS_FILE)
+
+    YAML.load_file(PRIVATE_REPOS_FILE).map do |repo|
+      {
+        'name' => repo['name'],
+        'description' => repo['description'],
+        'lastUpdated' => repo['lastUpdated']
+      }
+    end
   end
 
   def fetch_repo_page(page)
