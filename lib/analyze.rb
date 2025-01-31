@@ -18,17 +18,13 @@ class ScraperAnalyzer < ProcessBase
     developments edu false find format gov http https index
     list null org page plan planning plans query scraper
     scrapers search shire status true type undefined view www
-]).freeze
+  ]).freeze
 
   def initialize
     abort "Directory #{REPOS_DIR} does not exist!" unless Dir.exist?(REPOS_DIR)
     load_descriptions
     @placeholder_scrapers = []
     @no_scraper_repos = []
-
-    # Initialize aspell
-    @speller = IO.popen("aspell -a", "r+")
-    @speller.readline # Read first line to clear aspell header
   end
 
   def analyze
@@ -40,8 +36,8 @@ class ScraperAnalyzer < ProcessBase
         placeholder_scrapers_found: 0,
         no_scraper_file: 0
       },
-      repos: {}, # Will hold repo data for all scrapers
-      valid_repos: {} # Will hold only the useful scrapers
+      repos: {},
+      valid_repos: {}
     }
 
     all_repos = Dir.glob(File.join(REPOS_DIR, '*')).sort
@@ -50,11 +46,33 @@ class ScraperAnalyzer < ProcessBase
 
     all_repos.each do |repo_path|
       next unless File.directory?(repo_path)
-      next if File.basename(repo_path) == '.git' # Skip .git directory
+      next if File.basename(repo_path) == '.git'
       analyze_repo(repo_path)
     end
 
     output_results(total_repos)
+  end
+
+  def extract_urls(content)
+    content.scan(/https?:\/\/[^\s<>"']+/)
+      .reject { |url| url.start_with?('https://github.com', 'https://morph.io') }
+      .uniq
+  end
+
+  def extract_words(content)
+    extract_urls(content)
+      .flat_map { |url| extract_words_from_url(url) }
+      .reject { |word| word.length <= 2 }
+      .reject { |word| COMMON_WORDS.include?(word) }
+      .uniq
+  end
+
+  def extract_words_from_url(url)
+    # Remove scheme and hostname
+    path_and_query = url.sub(/^https?:\/\/[^\/]+/, '')
+    
+    # Extract words (sequences of alphanumeric characters)
+    path_and_query.scan(/[a-z0-9]+/)
   end
 
   private
@@ -62,10 +80,7 @@ class ScraperAnalyzer < ProcessBase
   def load_descriptions
     if File.exist?(REPOS_FILE)
       data = JSON.parse(File.read(REPOS_FILE))
-      @descriptions = {}
-      data.each do |name, info|
-        @descriptions[name] = info['description']
-      end
+      @descriptions = data.transform_values { |info| info['description'] }
     else
       puts "Warning: #{REPOS_FILE} not found!"
       @descriptions = {}
@@ -82,23 +97,13 @@ class ScraperAnalyzer < ProcessBase
 
   def analyze_scraper_content(content)
     # Remove comments based on file type
-    if content.match?(/^#!/) # Shebang indicates shell/ruby/python/perl
-      lines = content.lines.reject { |line| line.strip.start_with?('#') }
+    lines = if content.match?(/^#!/)
+      content.lines.reject { |line| line.strip.start_with?('#') }
     else
-      # For PHP/JS
-      lines = content.lines.reject { |line| line.strip.start_with?('//') }
+      content.lines.reject { |line| line.strip.start_with?('//') }
     end
 
     lines.reject { |line| line.strip.empty? }.map(&:strip)
-  end
-
-  def should_analyze_scraper?(lines)
-    lines.length >= 15 # Simplified threshold for all languages
-  end
-
-  def is_placeholder_scraper?(lines)
-    return false unless lines.any? { |l| l == 'Bundler.require' }
-    (lines - ['Bundler.require']).all? { |l| l.strip =~ /^\s*puts\s/ }
   end
 
   def count_ruby_files_lines(repo_path)
@@ -120,15 +125,7 @@ class ScraperAnalyzer < ProcessBase
 
     scraper_file = find_scraper_file(repo_path)
     unless scraper_file
-      @no_scraper_repos << repo_name
-      @results[:metadata][:no_scraper_file] += 1
-      @results[:repos][repo_name] = {
-        name: repo_name,
-        description: @descriptions[repo_name],
-        status: 'no_scraper',
-        main_line_count: 0,
-        total_line_count: count_ruby_files_lines(repo_path).length
-      }
+      handle_no_scraper_repo(repo_name, repo_path)
       return
     end
 
@@ -138,153 +135,136 @@ class ScraperAnalyzer < ProcessBase
       all_lines = count_ruby_files_lines(repo_path)
 
       if is_placeholder_scraper?(main_lines)
-        @placeholder_scrapers << repo_name
-        @results[:metadata][:placeholder_scrapers_found] += 1
-        @results[:repos][repo_name] = {
-          name: repo_name,
-          description: @descriptions[repo_name],
-          status: 'placeholder',
-          main_line_count: main_lines.length,
-          total_line_count: all_lines.length
-        }
+        handle_placeholder_scraper(repo_name, main_lines, all_lines)
         return
       end
 
       unless should_analyze_scraper?(all_lines)
-        @results[:metadata][:trivial_scrapers_skipped] += 1
-        @results[:repos][repo_name] = {
-          name: repo_name,
-          description: @descriptions[repo_name],
-          status: 'trivial',
-          main_line_count: main_lines.length,
-          total_line_count: all_lines.length
-        }
+        handle_trivial_scraper(repo_name, main_lines, all_lines)
         return
       end
 
-      urls = extract_urls(content)
-      words = extract_words(content)
-      repo_data = {
-        name: repo_name,
-        description: @descriptions[repo_name],
-        status: 'active',
-        urls: urls.to_a.sort,
-        words: words.to_a.sort,
-        main_line_count: main_lines.length,
-        total_line_count: all_lines.length
-      }
-
-      @results[:repos][repo_name] = repo_data
-      @results[:valid_repos][repo_name] = repo_data
-      @results[:metadata][:repos_analyzed] += 1
+      process_active_scraper(repo_name, content, main_lines, all_lines)
     rescue => e
       puts "  Error analyzing #{repo_name}: #{e.message}"
     end
   end
 
-  def extract_urls(content)
-    urls = Set.new
-    content.scan(/https?:\/\/[^\s<>"']+/).each do |url|
-      begin
-        uri = URI.parse(url)
-        urls << url if uri.host && !url.start_with?('https://github.com', 'https://morph.io')
-      rescue URI::InvalidURIError
-        # Skip invalid URLs
-      end
-    end
-    urls
+  def handle_no_scraper_repo(repo_name, repo_path)
+    @no_scraper_repos << repo_name
+    @results[:metadata][:no_scraper_file] += 1
+    @results[:repos][repo_name] = {
+      name: repo_name,
+      description: @descriptions[repo_name],
+      status: 'no_scraper',
+      main_line_count: 0,
+      total_line_count: count_ruby_files_lines(repo_path).length
+    }
   end
 
-  def process_potential_words(text, word_set)
-    text.downcase.scan(/[a-zA-Z][a-zA-Z0-9_-]{3,}/).each do |word|
-      # Skip if in common words list
-      next if COMMON_WORDS.include?(word.downcase)
-
-      # Check if word is in dictionary
-      @speller.puts(word)
-      @speller.flush
-      result = @speller.readline.chomp
-
-      # Add word if not in dictionary (result starts with '*' or '&')
-      word_set << word if result.start_with?('*', '&')
-    end
+  def is_placeholder_scraper?(lines)
+    return false unless lines.any? { |l| l == 'Bundler.require' }
+    (lines - ['Bundler.require']).all? { |l| l.strip =~ /^\s*puts\s/ }
   end
 
-  def extract_words(content)
-    words = Set.new
-    content.scan(/https?:\/\/[^\s<>"']+/).each do |url|
-      begin
-        uri = URI.parse(url)
-        next unless uri.host
-        next if url.start_with?('https://github.com', 'https://morph.io')
+  def handle_placeholder_scraper(repo_name, main_lines, all_lines)
+    @placeholder_scrapers << repo_name
+    @results[:metadata][:placeholder_scrapers_found] += 1
+    @results[:repos][repo_name] = {
+      name: repo_name,
+      description: @descriptions[repo_name],
+      status: 'placeholder',
+      main_line_count: main_lines.length,
+      total_line_count: all_lines.length
+    }
+  end
 
-        # Split path into components
-        if uri.path
-          uri.path.split('/').each do |part|
-            # Extract words from path parts (skip empty parts)
-            next if part.empty?
-            process_potential_words(part, words)
-          end
-        end
+  def should_analyze_scraper?(lines)
+    lines.length >= 15 # Simplified threshold for all languages
+  end
 
-        # Process query parameters if they exist
-        if uri.query
-          uri.query.split('&').each do |param|
-            name, value = param.split('=', 2)
-            # Add parameter names and values
-            process_potential_words(name, words)
-            process_potential_words(value, words) if value
-          end
-        end
-      rescue URI::InvalidURIError
-        # Skip invalid URLs
-      end
-    end
-    words
+  def handle_trivial_scraper(repo_name, main_lines, all_lines)
+    @results[:metadata][:trivial_scrapers_skipped] += 1
+    @results[:repos][repo_name] = {
+      name: repo_name,
+      description: @descriptions[repo_name],
+      status: 'trivial',
+      main_line_count: main_lines.length,
+      total_line_count: all_lines.length
+    }
+  end
+
+  def process_active_scraper(repo_name, content, main_lines, all_lines)
+    urls = extract_urls(content)
+    words = extract_words(content)
+    repo_data = {
+      name: repo_name,
+      description: @descriptions[repo_name],
+      status: 'active',
+      urls: urls.sort,
+      words: words.sort,
+      main_line_count: main_lines.length,
+      total_line_count: all_lines.length
+    }
+
+    @results[:repos][repo_name] = repo_data
+    @results[:valid_repos][repo_name] = repo_data
+    @results[:metadata][:repos_analyzed] += 1
   end
 
   def output_results(total_repos)
     FileUtils.mkdir_p('log')
 
-    # Output lists of different scraper types
-    if @placeholder_scrapers.any?
-      File.write(PLACEHOLDER_SCRAPERS_FILE, @placeholder_scrapers.sort.join("\n"))
-      puts "\nExcluded #{@placeholder_scrapers.size} placeholder scrapers (see #{PLACEHOLDER_SCRAPERS_FILE})"
-    end
+    output_scraper_lists
+    generate_output_files(total_repos)
+  end
 
-    if @results[:repos].any? { |_, r| r[:status] == 'trivial' }
-      trivial = @results[:repos].select { |_, r| r[:status] == 'trivial' }.keys.sort
-      File.write(TRIVIAL_SCRAPERS_FILE, trivial.join("\n"))
-      puts "Excluded #{trivial.size} trivial scrapers (see #{TRIVIAL_SCRAPERS_FILE})"
-    end
+  def output_scraper_lists
+    output_list(@placeholder_scrapers, PLACEHOLDER_SCRAPERS_FILE, 'placeholder')
+    output_list(
+      @results[:repos].select { |_, r| r[:status] == 'trivial' }.keys, 
+      TRIVIAL_SCRAPERS_FILE, 
+      'trivial'
+    )
+    output_list(@no_scraper_repos, NO_SCRAPER_FILE, 'no scraper')
+  end
 
-    if @no_scraper_repos.any?
-      File.write(NO_SCRAPER_FILE, @no_scraper_repos.sort.join("\n"))
-      puts "Excluded #{@no_scraper_repos.size} repos without scraper files (see #{NO_SCRAPER_FILE})"
-    end
+  def output_list(list, filename, type)
+    return unless list.any?
+    File.write(filename, list.sort.join("\n"))
+    puts "Excluded #{list.size} #{type} scrapers (see #{filename})"
+  end
 
-    # Production JS file - only valid scrapers
-    js_content = <<~JS
-        // Generated by Plannies Mate at #{@results[:metadata][:generated_at]}
-        // for #{@results[:valid_repos].size} active scrapers
+  def generate_output_files(total_repos)
+    js_content = generate_js_content
+    File.write(SCRAPER_ANALYSIS_FILE, js_content)
+    File.write(DEBUG_ANALYSIS_FILE, JSON.pretty_generate(@results))
 
-        export const scraperDateTime = '#{@results[:metadata][:generated_at]}';
+    print_analysis_results(total_repos)
+    validate_classification(total_repos)
+  end
 
-        export const scraperData = {
-        #{@results[:valid_repos].map { |name, data|
+  def generate_js_content
+    <<~JS
+      // Generated by Plannies Mate at #{@results[:metadata][:generated_at]}
+      // for #{@results[:valid_repos].size} active scrapers
+
+      export const scraperDateTime = '#{@results[:metadata][:generated_at]}';
+
+      export const scraperData = {
+      #{@results[:valid_repos].map { |name, data|
         "  '#{name}': {\n" \
           "    description: #{data[:description].to_json},\n" \
           "    words: #{data[:words].inspect}\n" \
           "  }"
       }.join(",\n")}
-        };
+      };
 
-        export const ignoreWords = [];
+      export const ignoreWords = [];
     JS
+  end
 
-    File.write(SCRAPER_ANALYSIS_FILE, js_content)
-    File.write(DEBUG_ANALYSIS_FILE, JSON.pretty_generate(@results))
-
+  def print_analysis_results(total_repos)
     puts "\n# Analysis Results"
     puts "Generated #{SCRAPER_ANALYSIS_FILE} with active scraper data"
     puts "Generated #{DEBUG_ANALYSIS_FILE} with full analysis"
@@ -294,19 +274,20 @@ class ScraperAnalyzer < ProcessBase
     puts "Excluded #{@results[:metadata][:placeholder_scrapers_found]} placeholder scrapers (see #{PLACEHOLDER_SCRAPERS_FILE})"
     puts "Excluded #{@results[:metadata][:no_scraper_file]} repos without scraper files (#{NO_SCRAPER_FILE})"
     puts "Generated at: #{@results[:metadata][:generated_at]}"
+  end
 
-    # Validation
+  def validate_classification(total_repos)
     total_classified = @results[:valid_repos].size +
       @results[:metadata][:trivial_scrapers_skipped] +
       @results[:metadata][:placeholder_scrapers_found] +
       @results[:metadata][:no_scraper_file]
 
-    if total_classified != total_repos
-      puts "\nWARNING: Classification mismatch!"
-      puts "Total repos: #{total_repos}"
-      puts "Total classified: #{total_classified}"
-      puts "Difference: #{total_repos - total_classified}"
-    end
+    return unless total_classified != total_repos
+
+    puts "\nWARNING: Classification mismatch!"
+    puts "Total repos: #{total_repos}"
+    puts "Total classified: #{total_classified}"
+    puts "Difference: #{total_repos - total_classified}"
   end
 end
 
