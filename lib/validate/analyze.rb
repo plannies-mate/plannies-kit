@@ -7,6 +7,7 @@ require 'json'
 require 'set'
 require 'open3'
 require 'time'
+require 'yaml'
 
 require_relative '../process_base'
 require_relative '../analyze'
@@ -99,6 +100,17 @@ class AnalyzeValidator < ProcessBase
   end
 
   def validate_repo_classifications
+    # Read the ignored repos file
+    ignored_repos = File.exist?(IGNORED_SCRAPERS_FILE) ? 
+      YAML.load_file(IGNORED_SCRAPERS_FILE) : {}
+
+    # Ensure all ignore reasons are represented
+    RepoScanner::IGNORE_REASONS.each do |reason|
+      assert ignored_repos.values.include?(reason), 
+        "No repos found with ignore reason: #{reason}"
+    end
+
+    # Read the debug analysis file
     debug_data = JSON.parse(File.read(DEBUG_ANALYSIS_FILE))
     repos = debug_data['repos']
 
@@ -107,12 +119,18 @@ class AnalyzeValidator < ProcessBase
 
     assert classifications.include?('active'), 
       "No active scrapers found in analysis"
-    assert classifications.include?('placeholder'), 
-      "No placeholder scrapers found in analysis"
-    assert classifications.include?('trivial'), 
-      "No trivial scrapers found in analysis"
-    assert classifications.include?('no_scraper'), 
-      "No repos without scrapers found in analysis"
+
+    # Validate active repos have required fields
+    active_repos = repos.select { |_, repo| repo['status'] == 'active' }
+    
+    refute active_repos.empty?, "No active repos found"
+    
+    active_repos.each do |name, repo|
+      assert repo.key?('urls'), "Active repo #{name} missing URLs"
+      assert repo.key?('words'), "Active repo #{name} missing words"
+      assert !repo['urls'].empty?, "Active repo #{name} has no URLs"
+      assert !repo['words'].empty?, "Active repo #{name} has no words"
+    end
   end
 
   # Assertion method
