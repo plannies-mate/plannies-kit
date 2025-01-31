@@ -50,7 +50,7 @@ class AnalyzeValidator < ProcessBase
     datetime_value = datetime_match[1]
     begin
       # Check if the datetime is in ISO 8601 format
-      parsed_time = Time.iso8601(datetime_value)
+      parsed_time = Time.parse(datetime_value)
       
       # Ensure it matches the original input
       unless datetime_value == parsed_time.iso8601
