@@ -154,7 +154,7 @@ class RepoDownloader < ProcessBase
       }
     end
     FileUtils.mkdir_p(File.dirname(REPOS_FILE))
-    File.write(REPOS_FILE, JSON.pretty_generate(descriptions))
+    File.write(REPOS_FILE, YAML.dump(descriptions))
 
     all_repos
   end

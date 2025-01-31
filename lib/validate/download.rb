@@ -28,7 +28,7 @@ class DownloadValidator < ProcessBase
     end
 
     begin
-      data = JSON.parse(File.read(REPOS_FILE))
+      data = YAML.load_file(REPOS_FILE)
       unless data.is_a?(Hash) && data.any?
         abort "#{REPOS_FILE} does not contain valid repository data!"
       end
@@ -67,7 +67,7 @@ class DownloadValidator < ProcessBase
   def validate_repo_directories
     puts "Validating repository directories..."
     
-    data = JSON.parse(File.read(REPOS_FILE))
+    data = YAML.load_file(REPOS_FILE)
     
     empty_repos = 0
     data.each do |name, _info|
