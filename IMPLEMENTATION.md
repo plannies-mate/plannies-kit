@@ -97,6 +97,11 @@ Validates:
 - Extracts and processes URLs
 - Filters words using aspell and COMMON_WORDS
 - Outputs `log/scraper_analysis.js` and debug_analysis.json
+- copies COMMON_WORDS into @ignored_words and then
+  adds all the words found that aspell determined where dictionary words.
+- a @non_dictionary_words set is also built up as well
+- these two lists are used to reduce the number of calls to aspell
+- @ignored_words is also output into ignoredWords in `scraper_analysis`
 
 ### lib/validate/analyze.rb
 
