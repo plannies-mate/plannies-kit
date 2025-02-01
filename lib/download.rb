@@ -11,6 +11,7 @@ require_relative 'process_base'
 
 class RepoDownloader < ProcessBase
   SECONDS_PER_WEEK = 7 * 24 * 60 * 60
+  MAX_REPOS_FILE_AGE = SECONDS_PER_WEEK  # One week in seconds
   GITHUB_REPOS_URL = "https://github.com/orgs/planningalerts-scrapers/repositories.json?q=archived%3Afalse"
   
   # Load private repos from multiples.yml
@@ -106,8 +107,9 @@ class RepoDownloader < ProcessBase
   def should_use_cached_descriptions?(existing_count)
     return false unless File.exist?(REPOS_FILE)
 
-    if (Time.now - File.mtime(REPOS_FILE)) > SECONDS_PER_WEEK
-      puts "descriptions.json is over a week old - cleaning and re-downloading..."
+    # Force weekly refresh of repositories
+    if (Time.now - File.mtime(REPOS_FILE)) > MAX_REPOS_FILE_AGE
+      puts "repos.yml is over a week old - cleaning and re-downloading..."
       run_cmd('script/clobber')
       return false
     end

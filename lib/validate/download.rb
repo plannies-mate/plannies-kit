@@ -17,8 +17,25 @@ class DownloadValidator < ProcessBase
     validate_repo_count
     validate_repo_directories
     validate_multiple_repos_exist
+    validate_repos_yml_age
 
     puts "All validations passed!"
+  end
+
+  def validate_repos_yml_age
+    puts "Validating repos.yml age..."
+    
+    repos_file_path = REPOS_FILE
+    unless File.exist?(repos_file_path)
+      abort "#{repos_file_path} does not exist!"
+    end
+
+    file_age = Time.now - File.mtime(repos_file_path)
+    max_age = 7 * 24 * 60 * 60  # 1 week in seconds
+
+    if file_age > max_age
+      abort "repos.yml is older than 1 week (#{file_age.to_i} seconds). Run script/clobber to refresh."
+    end
   end
 
   private
