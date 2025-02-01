@@ -68,6 +68,10 @@ act:
 ## Performance Considerations
 - Efficient word extraction
 - Minimal external command usage
+- Automatic weekly repository refresh mechanism
+  * repos.yml is automatically invalidated after 1 week
+  * Running script/process will trigger a full repository re-download
+  * Ensures repository data stays current without manual intervention
 
 ## Development Practices
 - Clear, concise progress reporting
