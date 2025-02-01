@@ -152,14 +152,24 @@ class RepoDownloader < ProcessBase
     private_repos = load_private_repos
     all_repos.concat(private_repos)
 
-    # Save descriptions to file
+    # Save descriptions to file and clone missing repos
     descriptions = {}
     all_repos.each do |repo|
-      descriptions[repo['name']] = {
+      name = repo['name']
+      descriptions[name] = {
         'description' => repo['description'] || '',
         'last_updated' => repo['lastUpdated']&.dig('timestamp') || repo['last_updated'] || Time.now.iso8601
       }
+
+      # Clone repository if not already present
+      target_dir = File.join(REPOS_DIR, name)
+      unless Dir.exist?(target_dir)
+        clone_url = "https://github.com/planningalerts-scrapers/#{name}.git"
+        puts "Cloning missing multiple repository: #{name}"
+        clone_repo({'name' => name, 'clone_url' => clone_url})
+      end
     end
+
     FileUtils.mkdir_p(File.dirname(REPOS_FILE))
     File.write(REPOS_FILE, YAML.dump(descriptions))
 
@@ -173,7 +183,7 @@ class RepoDownloader < ProcessBase
       {
         'name' => repo['name'],
         'description' => repo['description'],
-        'lastUpdated' => repo['lastUpdated']
+        'lastUpdated' => repo['lastUpdated'] || Time.now.iso8601
       }
     end
   end
