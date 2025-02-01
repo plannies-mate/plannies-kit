@@ -151,7 +151,8 @@ class RepoDownloader < ProcessBase
     end
 
     # Merge with private repos from private_repos.yml
-    private_repos = load_private_repos
+    private_repos = YAML.load_file(PRIVATE_REPOS_FILE).map
+
     all_repos.concat(private_repos)
 
     # Save descriptions to file and clone missing repos
@@ -176,25 +177,6 @@ class RepoDownloader < ProcessBase
     File.write(REPOS_FILE, YAML.dump(descriptions))
 
     all_repos
-  end
-
-  def load_private_repos
-    private_repos = []
-    
-    # Load private repos from PRIVATE_REPOS_FILE if it exists
-    if File.exist?(PRIVATE_REPOS_FILE)
-      private_repos.concat(
-        YAML.load_file(PRIVATE_REPOS_FILE).map do |repo|
-          {
-            'name' => repo['name'],
-            'description' => repo['description'],
-            'lastUpdated' => repo['lastUpdated'] || Time.now.iso8601
-          }
-        end
-      )
-    end
-
-    private_repos
   end
 
   def fetch_repo_page(page)
