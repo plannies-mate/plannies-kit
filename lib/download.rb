@@ -13,8 +13,8 @@ class RepoDownloader < ProcessBase
   SECONDS_PER_WEEK = 7 * 24 * 60 * 60
   GITHUB_REPOS_URL = "https://github.com/orgs/planningalerts-scrapers/repositories.json?q=archived%3Afalse"
   
-  # Load private repos from multis.yml
-  PRIVATE_REPOS_FILE = File.join('config', 'multis.yml')
+  # Load private repos from multiples.yml
+  PRIVATE_REPOS_FILE = File.join('config', 'multiples.yml')
 
   def initialize(limit = nil)
     @limit = limit ? limit.to_i : nil
@@ -148,7 +148,7 @@ class RepoDownloader < ProcessBase
       page += 1
     end
 
-    # Merge with private repos from multis.yml
+    # Merge with private repos from multiples.yml
     private_repos = load_private_repos
     all_repos.concat(private_repos)
 
