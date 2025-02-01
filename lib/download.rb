@@ -123,21 +123,49 @@ class RepoDownloader < ProcessBase
 
   def load_cached_descriptions
     YAML.load_file(REPOS_FILE).map do |name, info|
-      { 'name' => name, 'description' => info['description'] }
+      {
+        'name' => name, 
+        'description' => info['description'], 
+        'last_updated' => info['last_updated']
+      }
     end
+  end
+
+  def normalize_repo_data(repo)
+    {
+      'description' => repo['description'] || '',
+      'last_updated' => (
+        repo['lastUpdated']&.dig('timestamp') || 
+        repo['last_updated'] || 
+        Time.now.iso8601
+      )
+    }
   end
 
   def fetch_and_process_repos(existing_count)
     puts "Fetching repository list..."
     page = 1
-    all_repos = []
+    descriptions = {}
 
     loop do
       page_result = fetch_repo_page(page)
       break unless page_result
 
       repos, page_count, repo_count = page_result
-      all_repos.concat(repos)
+      repos.each do |repo|
+        name = repo['name']
+        descriptions[name] = normalize_repo_data(repo)
+
+        # Clone repository if not already present
+        target_dir = File.join(REPOS_DIR, name)
+        unless Dir.exist?(target_dir)
+          clone_url = "https://github.com/planningalerts-scrapers/#{name}.git"
+          puts "Cloning missing repository: #{name}"
+          clone_repo({'name' => name, 'clone_url' => clone_url})
+        end
+
+        break if @limit && descriptions.size >= @limit
+      end
 
       # Check if we already have all repos
       if repo_count <= existing_count
@@ -145,38 +173,21 @@ class RepoDownloader < ProcessBase
         break
       end
 
-      break if @limit && all_repos.size >= @limit
+      break if @limit && descriptions.size >= @limit
       break if page >= page_count
       page += 1
     end
 
     # Merge with private repos from private_repos.yml
-    private_repos = YAML.load_file(PRIVATE_REPOS_FILE).map
-
-    all_repos.concat(private_repos)
-
-    # Save descriptions to file and clone missing repos
-    descriptions = {}
-    all_repos.each do |repo|
-      name = repo['name']
-      descriptions[name] = {
-        'description' => repo['description'] || '',
-        'last_updated' => repo['lastUpdated']&.dig('timestamp') || repo['last_updated'] || Time.now.iso8601
-      }
-
-      # Clone repository if not already present
-      target_dir = File.join(REPOS_DIR, name)
-      unless Dir.exist?(target_dir)
-        clone_url = "https://github.com/planningalerts-scrapers/#{name}.git"
-        puts "Cloning missing repository: #{name}"
-        clone_repo({'name' => name, 'clone_url' => clone_url})
-      end
+    private_repos = YAML.load_file(PRIVATE_REPOS_FILE)
+    private_repos.each do |name, repo_data|
+      descriptions[name] = repo_data
     end
 
     FileUtils.mkdir_p(File.dirname(REPOS_FILE))
     File.write(REPOS_FILE, YAML.dump(descriptions))
 
-    all_repos
+    descriptions.values
   end
 
   def fetch_repo_page(page)
