@@ -179,15 +179,36 @@ class RepoDownloader < ProcessBase
   end
 
   def load_private_repos
-    return [] unless File.exist?(PRIVATE_REPOS_FILE)
-
-    YAML.load_file(PRIVATE_REPOS_FILE).map do |repo|
-      {
-        'name' => repo['name'],
-        'description' => repo['description'],
-        'lastUpdated' => repo['lastUpdated'] || Time.now.iso8601
-      }
+    private_repos = []
+    
+    # Load private repos from PRIVATE_REPOS_FILE if it exists
+    if File.exist?(PRIVATE_REPOS_FILE)
+      private_repos.concat(
+        YAML.load_file(PRIVATE_REPOS_FILE).map do |repo|
+          {
+            'name' => repo['name'],
+            'description' => repo['description'],
+            'lastUpdated' => repo['lastUpdated'] || Time.now.iso8601
+          }
+        end
+      )
     end
+
+    # Load multiple repositories from config/multis.yml
+    multis_file = File.join('config', 'multis.yml')
+    if File.exist?(multis_file)
+      private_repos.concat(
+        YAML.load_file(multis_file).map do |repo|
+          {
+            'name' => repo['name'],
+            'description' => repo['description'] || '',
+            'lastUpdated' => repo.dig('lastUpdated', 'timestamp') || Time.now.iso8601
+          }
+        end
+      )
+    end
+
+    private_repos
   end
 
   def fetch_repo_page(page)
