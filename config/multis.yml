@@ -1,0 +1,52 @@
+---
+- type: Private
+  name: multiple_civica
+  description: Scrapes multiple authorities with the civica system
+  lastUpdated:
+    timestamp: '2024-07-16T06:34:38.582Z'
+- type: Private
+  name: multiple_icon
+  description: Scrapes multiple authorities that have an icon system
+  lastUpdated:
+    timestamp: '2024-07-16T06:25:11.091Z'
+- type: Private
+  name: multiple_epathway_scraper
+  description: Scrape multiple authorities with epathway scraper
+  lastUpdated:
+    timestamp: '2024-07-16T06:15:56.575Z'
+- type: Private
+  name: multiple_masterview
+  description: Scrapes multiple authorities that have a masterview system
+  lastUpdated:
+    timestamp: '2024-07-16T05:07:10.771Z'
+- type: Private
+  name: multiple_technology_one
+  description: Scrapes multiple authorities using technology one system
+  lastUpdated:
+    timestamp: '2024-07-16T03:59:35.738Z'
+- type: Private
+  name: multiple_horizon
+  description: Scrapes multiple authorities with the horizon system
+  lastUpdated:
+    timestamp: '2023-09-12T01:51:12.391Z'
+- type: Private
+  name: multiple_cianywhere
+  description: ''
+  lastUpdated:
+    timestamp: '2023-09-11T07:25:59.939Z'
+- type: Private
+  name: multiple_developmenti
+  description: Scrape multiple authorities using the development.i system
+  lastUpdated:
+    timestamp: '2023-09-11T01:05:33.860Z'
+- type: Private
+  name: multiple_atdis
+  description: Scrapes multiple authorities that have ATDIS feed
+  lastUpdated:
+    timestamp: '2023-01-31T00:50:00.136Z'
+- type: Private
+  name: multiple_greenlight
+  description: Scrape councils using the greenlight OPM system
+  lastUpdated:
+    timestamp: '2022-07-25T05:06:55.402Z'
+

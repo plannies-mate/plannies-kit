@@ -14,8 +14,8 @@ class RepoDownloader < ProcessBase
   MAX_REPOS_FILE_AGE = SECONDS_PER_WEEK  # One week in seconds
   GITHUB_REPOS_URL = "https://github.com/orgs/planningalerts-scrapers/repositories.json?q=archived%3Afalse"
   
-  # Load private repos from multiples.yml
-  PRIVATE_REPOS_FILE = File.join('config', 'multiples.yml')
+  # Load private repos from private_repos.yml
+  PRIVATE_REPOS_FILE = File.join('config', 'private_repos.yml')
 
   def initialize(limit = nil)
     @limit = limit ? limit.to_i : nil
@@ -115,7 +115,7 @@ class RepoDownloader < ProcessBase
     end
 
     if existing_count > 0
-      puts "Already have #{existing_count} repositories - skipping download"
+      puts "Already have #{existing_count} repositories - skipping download of repo list till a weeks time"
       return true
     end
     false
@@ -150,7 +150,7 @@ class RepoDownloader < ProcessBase
       page += 1
     end
 
-    # Merge with private repos from multiples.yml
+    # Merge with private repos from private_repos.yml
     private_repos = load_private_repos
     all_repos.concat(private_repos)
 
@@ -167,7 +167,7 @@ class RepoDownloader < ProcessBase
       target_dir = File.join(REPOS_DIR, name)
       unless Dir.exist?(target_dir)
         clone_url = "https://github.com/planningalerts-scrapers/#{name}.git"
-        puts "Cloning missing multiple repository: #{name}"
+        puts "Cloning missing repository: #{name}"
         clone_repo({'name' => name, 'clone_url' => clone_url})
       end
     end
