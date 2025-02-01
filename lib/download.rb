@@ -145,7 +145,7 @@ class RepoDownloader < ProcessBase
   def fetch_and_process_repos(existing_count)
     puts "Fetching repository list..."
     page = 1
-    descriptions = {}
+    descriptions = load_cached_descriptions || {}
 
     loop do
       page_result = fetch_repo_page(page)
@@ -154,14 +154,20 @@ class RepoDownloader < ProcessBase
       repos, page_count, repo_count = page_result
       repos.each do |repo|
         name = repo['name']
-        descriptions[name] = normalize_repo_data(repo)
+        descriptions[name] ||= {
+          'description' => repo['description'] || '',
+          'last_updated' => (
+            repo['lastUpdated']&.dig('timestamp') || 
+            repo['last_updated'] || 
+            Time.now.iso8601
+          )
+        }
 
         # Clone repository if not already present
         target_dir = File.join(REPOS_DIR, name)
         unless Dir.exist?(target_dir)
-          clone_url = "https://github.com/planningalerts-scrapers/#{name}.git"
           puts "Cloning missing repository: #{name}"
-          clone_repo({'name' => name, 'clone_url' => clone_url})
+          clone_repo({'name' => name})
         end
 
         break if @limit && descriptions.size >= @limit
@@ -181,7 +187,7 @@ class RepoDownloader < ProcessBase
     # Merge with private repos from private_repos.yml
     private_repos = YAML.load_file(PRIVATE_REPOS_FILE)
     private_repos.each do |name, repo_data|
-      descriptions[name] = repo_data
+      descriptions[name] ||= repo_data
     end
 
     FileUtils.mkdir_p(File.dirname(REPOS_FILE))
