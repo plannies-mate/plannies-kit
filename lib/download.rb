@@ -87,6 +87,7 @@ class RepoDownloader < ProcessBase
   end
 
   def fetch_repo_list
+  def fetch_repo_list
     existing_count = count_existing_repos
 
     if should_use_cached_descriptions?(existing_count)
@@ -122,13 +123,7 @@ class RepoDownloader < ProcessBase
   end
 
   def load_cached_descriptions
-    YAML.load_file(REPOS_FILE).map do |name, info|
-      {
-        'name' => name, 
-        'description' => info['description'], 
-        'last_updated' => info['last_updated']
-      }
-    end
+    YAML.load_file(REPOS_FILE)
   end
 
   def normalize_repo_data(repo)
