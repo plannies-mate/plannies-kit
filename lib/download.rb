@@ -194,20 +194,6 @@ class RepoDownloader < ProcessBase
       )
     end
 
-    # Load multiple repositories from config/multis.yml
-    multis_file = File.join('config', 'multis.yml')
-    if File.exist?(multis_file)
-      private_repos.concat(
-        YAML.load_file(multis_file).map do |repo|
-          {
-            'name' => repo['name'],
-            'description' => repo['description'] || '',
-            'lastUpdated' => repo.dig('lastUpdated', 'timestamp') || Time.now.iso8601
-          }
-        end
-      )
-    end
-
     private_repos
   end
 
