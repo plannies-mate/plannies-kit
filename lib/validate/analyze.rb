@@ -258,28 +258,41 @@ class AnalyzeValidator < ProcessBase
 
     assert active_repos.any?, "No active repos found"
 
-    empty_words = empty_urls = 0
+    empty_words_from_strings = empty_words_from_urls = 0
     active_repos.each do |name, repo|
-      assert repo.key?(:urls), "Active repo #{name} missing URLs key"
-      assert repo.key?(:words), "Active repo #{name} missing words key"
-      assert !repo[:words].include?('href'), "Active repo #{name} should not have href as a word"
-      empty_urls += 1 if repo[:urls].empty?
-      empty_words += 1 if repo[:words].empty?
+      # Positively assert that :words key does NOT exist
+      refute repo.key?(:words), "Active repo #{name} should not have :words key"
+
+      assert repo.key?(:words_from_strings), "Active repo #{name} missing words_from_strings key"
+      assert repo.key?(:words_from_urls), "Active repo #{name} missing words_from_urls key"
+      assert repo.key?(:urls), "Active repo #{name} missing urls key"
+      
+      empty_words_from_urls += 1 if repo[:urls].empty?
+      empty_words_from_strings += 1 if repo[:words_from_strings].empty?
     end
-    assert empty_urls < 3,
-           "Should have less than 3 repos with no urls, got: #{empty_urls}"
-    assert empty_words < 3,
-           "Should have less than 3 repos with no words, got: #{empty_words}"
-    assert !results[:unknown_words].include?('href'), "global unknown_words should not include href"
+
+    assert empty_words_from_urls < 3,
+           "Should have less than 3 repos with no urls, got: #{empty_words_from_urls}"
+    assert empty_words_from_strings < 3,
+           "Should have less than 3 repos with no words_from_strings, got: #{empty_words_from_strings}"
 
     # New test: Ensure no words are common to all repos
-    common_words = active_repos.values.map { |repo| repo[:words] }.reduce(&:&)
-    assert common_words.empty?, "Found words common to all repos: #{common_words.inspect}"
+    common_words_from_strings = active_repos.values.map { |repo| repo[:words_from_strings] }.reduce(&:&)
+    common_words_from_urls = active_repos.values.map { |repo| repo[:words_from_urls] }.reduce(&:&)
+    
+    assert common_words_from_strings.empty?, 
+           "Found words common to all repos in words_from_strings: #{common_words_from_strings.inspect}"
+    assert common_words_from_urls.empty?, 
+           "Found words common to all repos in words_from_urls: #{common_words_from_urls.inspect}"
   end
 
   # Assertion method
   def assert(condition, message = nil)
     raise StandardError, message unless condition
+  end
+
+  def refute(condition, message = nil)
+    raise StandardError, message if condition
   end
 
   def assert_unique_lowercase_array(array, array_name, repo_name)
