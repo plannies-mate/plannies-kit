@@ -23,6 +23,16 @@ technical details, always refer to SPEC.md.
 - Ask for clarification if requirements seem ambiguous
 - Remember that simpler is usually better
 
+## Code Quality Principles
+
+- Write code that is immediately understandable
+- Prioritize clarity over cleverness
+- Comments explain "why", code explains "how"
+- Keep functions short and focused (under 20 lines)
+- Choose readable variable names over terse ones
+- Optimize for human comprehension first, computer efficiency second
+- When in doubt, err on the side of simplicity
+
 ### Code Development
 
 - Focus on one component at a time
