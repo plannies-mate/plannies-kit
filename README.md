@@ -1,9 +1,12 @@
 # Plannies Mate
 
-A tool to analyze PlanningAlerts scrapers and extract unique identifiers and terms. These help the "Cricky, what's
-that?" frontend tool identify which scraper to use for different council websites.
+Plannies Mate is a Ruby command-line tool that analyzes PlanningAlerts scrapers to extract unique identifiers and terms.
+
+This helps the "Crikey! What's That?" (AKA WhatsThat) frontend project identify which scraper to use for different
+council websites, minimizing the need to check repositories added after this analysis.
 
 Note: This README focuses on installation and usage. For development:
+
 - See GUIDELINES.md for development guidelines
 - See SPECS.md for requirements and architecture
 - See IMPLEMENTATION.md for implementation details

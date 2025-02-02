@@ -2,8 +2,8 @@
 
 Plannies Mate is a Ruby command-line tool that analyzes PlanningAlerts scrapers to extract unique identifiers and terms.
 
-This helps the "Cricky, what's that?" frontend tool identify which scraper to use for different council websites,
-minimizing the need to check repositories added after this analysis.
+This helps the "Crikey! What's That?" (AKA WhatsThat) frontend project identify which scraper to use for different
+council websites, minimizing the need to check repositories added after this analysis.
 
 Related Documentation:
 
@@ -32,7 +32,7 @@ Detect what language each repo is by the scraper file so you know how to recogni
 
 ### scraper_analysis.js format
 
-This file is the main requirement, as the file is copied to the "Cricky, what's that?" project.
+This file is the main requirement, as the file is copied to the WhatsThat project.
 
 This file MUST contain:
 
@@ -81,7 +81,7 @@ export const ignoreWords = [
 
 ### Word Extraction Rules
 
-Both this and the "Cricky Whats That?" projects MUST follow this algorithm so search words match!
+Both this and the "Crikey! What's That?" (WhatsThat) projects MUST follow this algorithm so search words match!
 
 Process files by:
 
@@ -91,7 +91,7 @@ Process files by:
     - remove the leading scheme and hostname using: `/https?:\/\/[^\/]*/`
 * extract all single-quoted and double-quoted strings
 
-2. extract all sequences of `/([-_a-z0-9]+)/i` which are called words for this project
+2. extract all sequences of `/[-_%a-z0-9]+/i` which are called words for this project
     - Note, this means there is No special handling of
     - camelCase (becomes one word),
     - snake_case or kebab-case (becomes one word)
@@ -152,7 +152,8 @@ Fail fast with message if missing where required for processing
 Request non-archived PlanningAlerts repo list from Github using
 [standard call](https://github.com/orgs/planningalerts-scrapers/repositories.json?q=archived%3Afalse)
 
-A yml file `config/private_repos.yml` containing a hash of repo names to descriptions will also be merged in as it is not
+A yml file `config/private_repos.yml` containing a hash of repo names to descriptions will also be merged in as it is
+not
 otherwise available without authentication.
 
 Note
