@@ -31,8 +31,19 @@ class ScraperAnalyzer < ProcessBase
       analyze_repo(repo_name, @results, @dictionary)
     end
 
-    @results[:known_words] = @dictionary.known_words.to_a.sort
-    @results[:unknown_words] = @dictionary.unknown_words.to_a.sort
+    # Find words common to all active repos
+    common_words = find_common_words(@results[:active_repos])
+
+    # Remove common words from each repo's words
+    @results[:active_repos].each do |repo_name, repo_data|
+      repo_data[:words] -= common_words
+    end
+
+    # Add common words to known words
+    @results[:known_words] = (@dictionary.known_words.to_a + common_words).sort
+    
+    # Remove common words from unknown words
+    @results[:unknown_words] = (@dictionary.unknown_words.to_a - common_words).sort
 
     puts "\nSaving internal results to #{ANALYSIS_RESULTS_FILE} ..."
 
@@ -43,6 +54,16 @@ class ScraperAnalyzer < ProcessBase
 
     output_generator = ScraperAnalysisOutputGenerator.new(@results)
     output_generator.generate_output_files
+  end
+
+  def find_common_words(active_repos)
+    return [] if active_repos.empty?
+    
+    # Get words from all active repos
+    all_words = active_repos.values.map { |repo| repo[:words] }
+    
+    # Find words that appear in ALL repos
+    all_words.reduce(&:&)
   end
 
   def initial_results

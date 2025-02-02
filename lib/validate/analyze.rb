@@ -174,6 +174,10 @@ class AnalyzeValidator < ProcessBase
     assert empty_words < 3,
            "Should have less than 3 repos with no words, got: #{empty_words}"
     assert !results[:unknown_words].include?('href'), "global unknown_words should not include href"
+
+    # New test: Ensure no words are common to all repos
+    common_words = active_repos.values.map { |repo| repo[:words] }.reduce(&:&)
+    assert common_words.empty?, "Found words common to all repos: #{common_words.inspect}"
   end
 
   # Assertion method
