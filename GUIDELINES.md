@@ -15,6 +15,15 @@ Note: README.md contains installation and usage instructions which are not relev
 This document guides AI assistants in working on small-to-medium sized data processing tools. For project-specific
 technical details, always refer to SPEC.md.
 
+## AI Interaction Principles
+
+- Respect existing working code
+- Minimize unnecessary rewrites
+- Prioritize incremental improvements
+- Ask clarifying questions before major changes
+- Solve problems with the smallest possible intervention
+- When in doubt, propose the least invasive solution
+
 ## AI Development Approach
 
 ### Understanding Requirements
