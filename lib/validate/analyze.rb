@@ -58,17 +58,30 @@ class AnalyzeValidator < ProcessBase
   end
 
   def validate_scraper_analysis_structure
-    # Read the file contents
+    # First, validate debug file
+    debug_data = YAML.load_file(ANALYSIS_RESULTS_FILE)
+
+    # Count empty arrays in debug file
+    empty_words_from_strings = debug_data[:active_repos].values.count { |repo_data| repo_data[:words_from_strings].empty? }
+    empty_words_from_urls = debug_data[:active_repos].values.count { |repo_data| repo_data[:words_from_urls].empty? }
+    total_repos = debug_data[:active_repos].size
+
+    puts "Debug file stats:"
+    puts "  Total repos: #{total_repos}"
+    puts "  Repos with empty words_from_strings: #{empty_words_from_strings}"
+    puts "  Repos with empty words_from_urls: #{empty_words_from_urls}"
+
+    # Read the JS file contents
     content = File.read(SCRAPER_ANALYSIS_FILE)
 
     # Check for required exports
-    abort("Error: Missing scraperDateTime export") unless content.include?('export const scraperDateTime')
-    abort("Error: Missing scraperData export") unless content.include?('export const scraperData')
-    abort("Error: Missing ignoreWords export") unless content.include?('export const ignoreWords')
+    abort("Error: Missing scraperDateTime export in JS file") unless content.include?('export const scraperDateTime')
+    abort("Error: Missing scraperData export in JS file") unless content.include?('export const scraperData')
+    abort("Error: Missing ignoreWords export in JS file") unless content.include?('export const ignoreWords')
 
     # Extract scraperData JSON-like content
     scraper_data_match = content.match(/export const scraperData\s*=\s*(\{.*?\});/m)
-    abort("Error: Could not extract scraperData") unless scraper_data_match
+    abort("Error: Could not extract scraperData from JS file") unless scraper_data_match
 
     begin
       # Convert JavaScript object to valid JSON
@@ -83,24 +96,32 @@ class AnalyzeValidator < ProcessBase
       parsed_data.each do |repo_name, repo_data|
         # Ensure required keys exist and are arrays
         [:words_from_strings, :words_from_urls, :url_patterns].each do |key|
-          abort("Error: Missing #{key} for #{repo_name}") unless repo_data.key?(key)
-          abort("Error: #{key} must be an array for #{repo_name}") unless repo_data[key].is_a?(Array)
+          abort("Error: Missing #{key} for #{repo_name} in JS file") unless repo_data.key?(key)
+          abort("Error: #{key} must be an array for #{repo_name} in JS file") unless repo_data[key].is_a?(Array)
         end
       end
 
-      # Count empty arrays
-      empty_words_from_strings = parsed_data.values.count { |repo_data| repo_data[:words_from_strings].empty? }
-      empty_words_from_urls = parsed_data.values.count { |repo_data| repo_data[:words_from_urls].empty? }
-      total_repos = parsed_data.size
+      # Count empty arrays in JS file
+      js_empty_words_from_strings = parsed_data.values.count { |repo_data| repo_data[:words_from_strings].empty? }
+      js_empty_words_from_urls = parsed_data.values.count { |repo_data| repo_data[:words_from_urls].empty? }
+      js_total_repos = parsed_data.size
+
+      puts "JS file stats:"
+      puts "  Total repos: #{js_total_repos}"
+      puts "  Repos with empty words_from_strings: #{js_empty_words_from_strings}"
+      puts "  Repos with empty words_from_urls: #{js_empty_words_from_urls}"
+
+      # Validate consistency between debug file and JS file
+      abort("Mismatch in total repos between debug file (#{total_repos}) and JS file (#{js_total_repos})") if total_repos != js_total_repos
 
       # Check for reasonable number of empty arrays
       max_empty_words_from_strings = (total_repos * 0.4).ceil  # Allow up to 40% empty
       max_empty_words_from_urls = (total_repos * 0.4).ceil     # Allow up to 40% empty
 
-      abort("Too many repos with empty words_from_strings: #{empty_words_from_strings} (max #{max_empty_words_from_strings})") if empty_words_from_strings > max_empty_words_from_strings
-      abort("Too many repos with empty words_from_urls: #{empty_words_from_urls} (max #{max_empty_words_from_urls})") if empty_words_from_urls > max_empty_words_from_urls
+      abort("Too many repos with empty words_from_strings: #{js_empty_words_from_strings} (max #{max_empty_words_from_strings})") if js_empty_words_from_strings > max_empty_words_from_strings
+      abort("Too many repos with empty words_from_urls: #{js_empty_words_from_urls} (max #{max_empty_words_from_urls})") if js_empty_words_from_urls > max_empty_words_from_urls
     rescue JSON::ParserError => e
-      abort("Error parsing scraperData: #{e.message}")
+      abort("Error parsing scraperData in JS file: #{e.message}")
     end
   end
 
