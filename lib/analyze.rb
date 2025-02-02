@@ -178,7 +178,6 @@ class ScraperAnalyzer < ProcessBase
       description: descriptions[repo_name],
       status: 'active',
       urls: urls.sort,
-      words: words.sort,
       words_from_strings: words_from_strings.sort,
       words_from_urls: words_from_urls.sort
     }

@@ -66,10 +66,12 @@ class AnalyzeValidator < ProcessBase
     empty_words_from_urls = debug_data[:active_repos].values.count { |repo_data| repo_data[:words_from_urls].empty? }
     total_repos = debug_data[:active_repos].size
 
-    puts "Debug file stats:"
-    puts "  Total repos: #{total_repos}"
-    puts "  Repos with empty words_from_strings: #{empty_words_from_strings}"
-    puts "  Repos with empty words_from_urls: #{empty_words_from_urls}"
+    if ENV['DEBUG']
+      puts "Debug file stats:"
+      puts "  Total repos: #{total_repos}"
+      puts "  Repos with empty words_from_strings: #{empty_words_from_strings}"
+      puts "  Repos with empty words_from_urls: #{empty_words_from_urls}"
+    end
 
     # Read the JS file contents
     content = File.read(SCRAPER_ANALYSIS_FILE)
@@ -106,10 +108,12 @@ class AnalyzeValidator < ProcessBase
       js_empty_words_from_urls = parsed_data.values.count { |repo_data| repo_data[:words_from_urls].empty? }
       js_total_repos = parsed_data.size
 
-      puts "JS file stats:"
-      puts "  Total repos: #{js_total_repos}"
-      puts "  Repos with empty words_from_strings: #{js_empty_words_from_strings}"
-      puts "  Repos with empty words_from_urls: #{js_empty_words_from_urls}"
+      if ENV['DEBUG']
+        puts "JS file stats:"
+        puts "  Total repos: #{js_total_repos}"
+        puts "  Repos with empty words_from_strings: #{js_empty_words_from_strings}"
+        puts "  Repos with empty words_from_urls: #{js_empty_words_from_urls}"
+      end
 
       # Validate consistency between debug file and JS file
       abort("Mismatch in total repos between debug file (#{total_repos}) and JS file (#{js_total_repos})") if total_repos != js_total_repos
