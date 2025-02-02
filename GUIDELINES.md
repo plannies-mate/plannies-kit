@@ -44,6 +44,15 @@ technical details, always refer to SPEC.md.
 - Optimize for human comprehension first, computer efficiency second
 - When in doubt, err on the side of simplicity and clarity
 
+## AI Behavioral Safeguards
+
+- Code is communication, not just instructions
+- Prefer understanding over rewriting
+- Demonstrate your reasoning before proposing changes
+- Show the minimal path to solving the problem
+- Explicitly state why a change is necessary
+- If uncertain, ask clarifying questions first
+
 ## Defensive Programming Principles
 
 - Treat all external input as potentially hostile and/or broken
