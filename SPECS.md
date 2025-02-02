@@ -59,14 +59,14 @@ export const scraperDateTime = "2025-01-29T23:33:13Z";
 export const scraperData = {
     'yarra': {
         description: "Yarra City Development Applications",
-        words_from_urls: ["planning", "application"],
-        words_from_strings: ["myplanning", "xearch"],
-        url_patterns: ["/planning-application-search"]
+        words_from_strings: ["nodeid"],
+        words_from_urls: ["myplanning", "xearch"],
+        url_patterns: ["/myplanning-application-xsearch"]
     },
     'act': {
         description: "ACT Planning Portal Scraper",
-        words_from_urls: ["development", "applications"],
-        words_from_strings: ["fromdate"],
+        words_from_strings: ["search-results"],
+        words_from_urls: ["fromdate"],
         url_patterns: ["/applications-and-assessments/development-applications"]
     }
     // ... more scrapers
