@@ -36,12 +36,13 @@ This file is the main requirement, as the file is copied to the "Cricky, what's 
 
 This file MUST contain:
 
-* `export const latestUpdate` - with the latest updated_at time across all repos
+* `export const scraperDateTime` - with the latest updated_at time across all repos
 
 * `export const scraperData` - a hash of repo name from Github to the following details
     * description - the description of the repo from Github
-    * words - an array of non dictionary words that are significant in scoring the usefulness of this repo in parsing
-      the page in question - see word extraction rules below
+    * words_from_urls - an array of non-dictionary words extracted from URLs
+    * words_from_strings - an array of non-dictionary words extracted from code strings
+    * url_patterns - an array of meaningful URL patterns for the scraper
 
 * `export const ignoreWords` - a list of words that where and/or should be ignored. formed from:
     * words extracted from urls that where identified as dictionary words by `aspell` command
@@ -58,11 +59,15 @@ export const scraperDateTime = "2025-01-29T23:33:13Z";
 export const scraperData = {
     'yarra': {
         description: "Yarra City Development Applications",
-        words: ["myplanning", "xearch"]
+        words_from_urls: ["planning", "application"],
+        words_from_strings: ["myplanning", "xearch"],
+        url_patterns: ["/planning-application-search"]
     },
     'act': {
         description: "ACT Planning Portal Scraper",
-        words: ["fromdate"]
+        words_from_urls: ["development", "applications"],
+        words_from_strings: ["fromdate"],
+        url_patterns: ["/applications-and-assessments/development-applications"]
     }
     // ... more scrapers
 };
