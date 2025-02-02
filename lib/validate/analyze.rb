@@ -147,19 +147,32 @@ class AnalyzeValidator < ProcessBase
       abort("Error: Invalid datetime format. Value: #{datetime_value}")
     end
 
-    # Additional checks for words and URLs
-    js_content = eval(content.gsub('export const', ''))
-  
-    js_content[:scraperData].each do |repo_name, repo_data|
-      # Ensure words are unique and lowercase
-      assert_unique_lowercase_array(repo_data[:words_from_strings], "words_from_strings", repo_name)
-      assert_unique_lowercase_array(repo_data[:words_from_urls], "words_from_urls", repo_name)
-    
-      # Ensure URL patterns are unique
-      assert_unique_array(repo_data[:url_patterns], "url_patterns", repo_name)
-    end
+    # Extract scraperData JSON-like content
+    scraper_data_match = content.match(/export const scraperData\s*=\s*(\{.*?\});/m)
+    abort("Error: Could not extract scraperData") unless scraper_data_match
 
-    puts "Validated scraperDateTime: #{datetime_value}"
+    begin
+      # Convert JavaScript object to valid JSON
+      json_content = scraper_data_match[1]
+        .gsub(/(\w+):/, '"\1":')  # Quote keys
+        .gsub(/'([^']*)'/, '"\1"')  # Convert single quotes to double quotes
+
+      # Parse the JSON
+      parsed_data = JSON.parse(json_content, symbolize_names: true)
+    
+      parsed_data.each do |repo_name, repo_data|
+        # Ensure words are unique and lowercase
+        assert_unique_lowercase_array(repo_data[:words_from_strings], "words_from_strings", repo_name)
+        assert_unique_lowercase_array(repo_data[:words_from_urls], "words_from_urls", repo_name)
+      
+        # Ensure URL patterns are unique
+        assert_unique_array(repo_data[:url_patterns], "url_patterns", repo_name)
+      end
+
+      puts "Validated scraperDateTime: #{datetime_value}"
+    rescue JSON::ParserError => e
+      abort("Error parsing scraperData: #{e.message}")
+    end
   end
 
   def validate_debug_analysis_structure
