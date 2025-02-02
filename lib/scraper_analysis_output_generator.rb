@@ -35,9 +35,9 @@ class ScraperAnalysisOutputGenerator
     @results[:active_repos].map do |name, data|
       active_repos[name] = {
         description: data[:description],
-        words_from_strings: data[:words_from_strings],
-        words_from_urls: data[:words_from_urls],
-        url_patterns: data[:urls]
+        words_from_strings: data[:words] || [], # Use existing words as words_from_strings
+        words_from_urls: [], # Initialize as empty array
+        url_patterns: data[:urls] || []
       }
     end
     ignore_words = @results[:known_words].to_a.sort
