@@ -79,22 +79,19 @@ class AnalyzeValidator < ProcessBase
       # Parse the JSON
       parsed_data = JSON.parse(json_content, symbolize_names: true)
 
+      # Validate scraperData structure
+      parsed_data.each do |repo_name, repo_data|
+        # Ensure required keys exist and are arrays
+        [:words_from_strings, :words_from_urls, :url_patterns].each do |key|
+          abort("Error: Missing #{key} for #{repo_name}") unless repo_data.key?(key)
+          abort("Error: #{key} must be an array for #{repo_name}") unless repo_data[key].is_a?(Array)
+        end
+      end
+
       # Count empty arrays
       empty_words_from_strings = parsed_data.values.count { |repo_data| repo_data[:words_from_strings].empty? }
       empty_words_from_urls = parsed_data.values.count { |repo_data| repo_data[:words_from_urls].empty? }
       total_repos = parsed_data.size
-
-      # Validate scraperData structure
-      parsed_data.each do |repo_name, repo_data|
-        abort("Error: Missing words_from_strings for #{repo_name}") unless repo_data.key?(:words_from_strings)
-        abort("Error: Missing words_from_urls for #{repo_name}") unless repo_data.key?(:words_from_urls)
-        abort("Error: Missing url_patterns for #{repo_name}") unless repo_data.key?(:url_patterns)
-      
-        # Ensure these are arrays
-        abort("Error: words_from_strings must be an array for #{repo_name}") unless repo_data[:words_from_strings].is_a?(Array)
-        abort("Error: words_from_urls must be an array for #{repo_name}") unless repo_data[:words_from_urls].is_a?(Array)
-        abort("Error: url_patterns must be an array for #{repo_name}") unless repo_data[:url_patterns].is_a?(Array)
-      end
 
       # Check for reasonable number of empty arrays
       max_empty_words_from_strings = (total_repos * 0.4).ceil  # Allow up to 40% empty
