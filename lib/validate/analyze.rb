@@ -65,6 +65,21 @@ class AnalyzeValidator < ProcessBase
     abort("Error: Missing scraperDateTime export") unless content.include?('export const scraperDateTime')
     abort("Error: Missing scraperData export") unless content.include?('export const scraperData')
     abort("Error: Missing ignoreWords export") unless content.include?('export const ignoreWords')
+
+    # Parse the JavaScript content to validate structure
+    js_content = eval(content.gsub('export const', ''))
+
+    # Validate scraperData structure
+    js_content[:scraperData].each do |repo_name, repo_data|
+      abort("Error: Missing words_from_strings for #{repo_name}") unless repo_data.key?(:words_from_strings)
+      abort("Error: Missing words_from_urls for #{repo_name}") unless repo_data.key?(:words_from_urls)
+      abort("Error: Missing url_patterns for #{repo_name}") unless repo_data.key?(:url_patterns)
+    
+      # Ensure these are arrays
+      abort("Error: words_from_strings must be an array for #{repo_name}") unless repo_data[:words_from_strings].is_a?(Array)
+      abort("Error: words_from_urls must be an array for #{repo_name}") unless repo_data[:words_from_urls].is_a?(Array)
+      abort("Error: url_patterns must be an array for #{repo_name}") unless repo_data[:url_patterns].is_a?(Array)
+    end
   end
 
   def validate_scraper_analysis_values
@@ -89,7 +104,18 @@ class AnalyzeValidator < ProcessBase
       abort("Error: Invalid datetime format. Value: #{datetime_value}")
     end
 
-    # Additional checks can be added here if needed
+    # Additional checks for words and URLs
+    js_content = eval(content.gsub('export const', ''))
+  
+    js_content[:scraperData].each do |repo_name, repo_data|
+      # Ensure words are unique and lowercase
+      assert_unique_lowercase_array(repo_data[:words_from_strings], "words_from_strings", repo_name)
+      assert_unique_lowercase_array(repo_data[:words_from_urls], "words_from_urls", repo_name)
+    
+      # Ensure URL patterns are unique
+      assert_unique_array(repo_data[:url_patterns], "url_patterns", repo_name)
+    end
+
     puts "Validated scraperDateTime: #{datetime_value}"
   end
 
@@ -183,6 +209,25 @@ class AnalyzeValidator < ProcessBase
   # Assertion method
   def assert(condition, message = nil)
     raise StandardError, message unless condition
+  end
+
+  def assert_unique_lowercase_array(array, array_name, repo_name)
+    # Check for uniqueness
+    unless array == array.uniq
+      abort("Error: Duplicate entries in #{array_name} for #{repo_name}")
+    end
+
+    # Check for lowercase
+    unless array == array.map(&:downcase)
+      abort("Error: Non-lowercase entries in #{array_name} for #{repo_name}")
+    end
+  end
+
+  def assert_unique_array(array, array_name, repo_name)
+    # Check for uniqueness
+    unless array == array.uniq
+      abort("Error: Duplicate entries in #{array_name} for #{repo_name}")
+    end
   end
 
   def dictionary_word?(word)
