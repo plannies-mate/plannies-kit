@@ -64,6 +64,7 @@ class AnalyzeValidator < ProcessBase
     # Count empty arrays in debug file
     empty_words_from_strings = debug_data[:active_repos].values.count { |repo_data| repo_data[:words_from_strings].empty? }
     empty_words_from_urls = debug_data[:active_repos].values.count { |repo_data| repo_data[:words_from_urls].empty? }
+    empty_urls = debug_data[:active_repos].values.count { |repo_data| repo_data[:urls].empty? }
     total_repos = debug_data[:active_repos].size
 
     if ENV['DEBUG']
@@ -71,6 +72,7 @@ class AnalyzeValidator < ProcessBase
       puts "  Total repos: #{total_repos}"
       puts "  Repos with empty words_from_strings: #{empty_words_from_strings}"
       puts "  Repos with empty words_from_urls: #{empty_words_from_urls}"
+      puts "  Repos with empty urls: #{empty_urls}"
     end
 
     # Read the JS file contents
@@ -106,6 +108,7 @@ class AnalyzeValidator < ProcessBase
       # Count empty arrays in JS file
       js_empty_words_from_strings = parsed_data.values.count { |repo_data| repo_data[:words_from_strings].empty? }
       js_empty_words_from_urls = parsed_data.values.count { |repo_data| repo_data[:words_from_urls].empty? }
+      js_empty_url_patterns = parsed_data.values.count { |repo_data| repo_data[:url_patterns].empty? }
       js_total_repos = parsed_data.size
 
       if ENV['DEBUG']
@@ -113,6 +116,7 @@ class AnalyzeValidator < ProcessBase
         puts "  Total repos: #{js_total_repos}"
         puts "  Repos with empty words_from_strings: #{js_empty_words_from_strings}"
         puts "  Repos with empty words_from_urls: #{js_empty_words_from_urls}"
+        puts "  Repos with empty url_patterns: #{js_empty_url_patterns}"
       end
 
       # Validate consistency between debug file and JS file
@@ -127,6 +131,15 @@ class AnalyzeValidator < ProcessBase
     rescue JSON::ParserError => e
       abort("Error parsing scraperData in JS file: #{e.message}")
     end
+
+    # Print stats from debug file
+    puts "\nAnalysis Stats:"
+    puts "  Active repos: #{debug_data[:stats][:active]}"
+    puts "  No scraper repos: #{debug_data[:stats][:no_scraper]}"
+    puts "  Placeholder repos: #{debug_data[:stats][:placeholder]}"
+    puts "  Trivial repos: #{debug_data[:stats][:trivial]}"
+    puts "  Known words: #{debug_data[:known_words].size}"
+    puts "  Unknown words: #{debug_data[:unknown_words].size}"
   end
 
   def validate_scraper_analysis_values
