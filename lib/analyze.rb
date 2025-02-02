@@ -169,12 +169,18 @@ class ScraperAnalyzer < ProcessBase
   end
 
   def record_active_scraper(results, repo_name, urls, words)
+    # Separate words from URLs and strings
+    words_from_urls = extract_words(urls, @dictionary)
+    words_from_strings = words - words_from_urls
+
     repo_data = {
       name: repo_name,
       description: descriptions[repo_name],
       status: 'active',
       urls: urls.sort,
-      words: words.sort
+      words: words.sort,
+      words_from_strings: words_from_strings.sort,
+      words_from_urls: words_from_urls.sort
     }
 
     results[:active_repos][repo_name] = repo_data

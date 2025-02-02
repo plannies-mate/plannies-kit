@@ -157,6 +157,17 @@ class AnalyzeValidator < ProcessBase
     # Check repos structure
     abort("Error: Missing active_repos in debug analysis") unless debug_data[:active_repos]&.any?
     abort("Error: Missing ignored_repos in debug analysis") unless debug_data[:ignored_repos]&.any?
+
+    # New checks for word extraction
+    debug_data[:active_repos].each do |repo_name, repo_data|
+      # Check that words_from_strings and words_from_urls are present
+      abort("Error: Missing words_from_strings for #{repo_name}") unless repo_data.key?(:words_from_strings)
+      abort("Error: Missing words_from_urls for #{repo_name}") unless repo_data.key?(:words_from_urls)
+
+      # Ensure these are arrays
+      abort("Error: words_from_strings must be an array for #{repo_name}") unless repo_data[:words_from_strings].is_a?(Array)
+      abort("Error: words_from_urls must be an array for #{repo_name}") unless repo_data[:words_from_urls].is_a?(Array)
+    end
   end
 
   def validate_word_extraction
