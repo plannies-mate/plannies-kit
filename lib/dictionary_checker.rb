@@ -8,6 +8,8 @@ class DictionaryChecker
     developments edu false find format gov http https index
     list null org page plan planning plans query scraper
     scrapers search shire status true type undefined view www
+    rspec scraperwiki mechanize httparty nokogiri json rubygems
+    capybara selenium-webdriver base_url info_url root_url
   ].freeze
 
   def initialize
