@@ -66,19 +66,32 @@ class AnalyzeValidator < ProcessBase
     abort("Error: Missing scraperData export") unless content.include?('export const scraperData')
     abort("Error: Missing ignoreWords export") unless content.include?('export const ignoreWords')
 
-    # Parse the JavaScript content to validate structure
-    js_content = eval(content.gsub('export const', ''))
+    # Extract scraperData JSON-like content
+    scraper_data_match = content.match(/export const scraperData\s*=\s*(\{.*?\});/m)
+    abort("Error: Could not extract scraperData") unless scraper_data_match
 
-    # Validate scraperData structure
-    js_content[:scraperData].each do |repo_name, repo_data|
-      abort("Error: Missing words_from_strings for #{repo_name}") unless repo_data.key?(:words_from_strings)
-      abort("Error: Missing words_from_urls for #{repo_name}") unless repo_data.key?(:words_from_urls)
-      abort("Error: Missing url_patterns for #{repo_name}") unless repo_data.key?(:url_patterns)
-    
-      # Ensure these are arrays
-      abort("Error: words_from_strings must be an array for #{repo_name}") unless repo_data[:words_from_strings].is_a?(Array)
-      abort("Error: words_from_urls must be an array for #{repo_name}") unless repo_data[:words_from_urls].is_a?(Array)
-      abort("Error: url_patterns must be an array for #{repo_name}") unless repo_data[:url_patterns].is_a?(Array)
+    begin
+      # Convert JavaScript object to valid JSON
+      json_content = scraper_data_match[1]
+        .gsub(/(\w+):/, '"\1":')  # Quote keys
+        .gsub(/'([^']*)'/, '"\1"')  # Convert single quotes to double quotes
+
+      # Parse the JSON
+      parsed_data = JSON.parse(json_content, symbolize_names: true)
+
+      # Validate scraperData structure
+      parsed_data.each do |repo_name, repo_data|
+        abort("Error: Missing words_from_strings for #{repo_name}") unless repo_data.key?(:words_from_strings)
+        abort("Error: Missing words_from_urls for #{repo_name}") unless repo_data.key?(:words_from_urls)
+        abort("Error: Missing url_patterns for #{repo_name}") unless repo_data.key?(:url_patterns)
+      
+        # Ensure these are arrays
+        abort("Error: words_from_strings must be an array for #{repo_name}") unless repo_data[:words_from_strings].is_a?(Array)
+        abort("Error: words_from_urls must be an array for #{repo_name}") unless repo_data[:words_from_urls].is_a?(Array)
+        abort("Error: url_patterns must be an array for #{repo_name}") unless repo_data[:url_patterns].is_a?(Array)
+      end
+    rescue JSON::ParserError => e
+      abort("Error parsing scraperData: #{e.message}")
     end
   end
 
