@@ -1,6 +1,7 @@
 # Project Guidelines for AI Assistants
 
 This project's documentation is split across several files:
+
 - GUIDELINES.md (this file) - Guidelines for AI assistants and developers
 - SPECS.md - Core requirements and system architecture
 - IMPLEMENTATION.md - Detailed implementation guidance and algorithms
@@ -29,9 +30,23 @@ technical details, always refer to SPEC.md.
 - Prioritize clarity over cleverness
 - Comments explain "why", code explains "how"
 - Keep functions short and focused (under 20 lines)
+- Keep files focused on a single clear responsibility (under 200 lines)
 - Choose readable variable names over terse ones
 - Optimize for human comprehension first, computer efficiency second
-- When in doubt, err on the side of simplicity
+- When in doubt, err on the side of simplicity and clarity
+
+## Defensive Programming Principles
+
+- Always validate and sanitize external inputs
+- Assume all external data or input is potentially malicious and/or broken
+- Use language-specific safety mechanisms
+- Prefer explicit, restrictive parsing over permissive methods
+- Fail fast and explicitly when assumptions are violated
+- Treat code as a communication tool, not just a machine instruction set
+- Use the clearest, simplest to understand rather than the most sophisticated approach that does the job
+    - You are not as smart as you think you are! Code at least one level down from what you are capable of to reduce the
+      number of mistakes!
+- Take the pragmatic approach - don't over complicate things!
 
 ### Code Development
 
