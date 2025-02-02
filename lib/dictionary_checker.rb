@@ -25,6 +25,11 @@ class DictionaryChecker
     return true if @known_words.include?(key)
     return false if @unknown_words.include?(key)
 
+    if HTMLFilter.html_token?(key)
+      @known_words.add(key)
+      return true
+    end
+
     Open3.popen3('aspell list') do |stdin, stdout, stderr, _wait_thread|
       stdin.puts(word)
       stdin.close

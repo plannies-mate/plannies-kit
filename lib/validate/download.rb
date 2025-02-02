@@ -57,11 +57,11 @@ class DownloadValidator < ProcessBase
         unless info.is_a?(Hash) &&
           info['description'].is_a?(String) &&
           info['last_updated'].is_a?(String)
-          abort "Invalid data format for repository #{name}"
+          abort "Invalid data format for repository #{name}: #{info.inspect}"
         end
       end
-    rescue YAML::ParserError, YAML::ParseError => e
-      abort "Failed to parse #{REPOS_FILE}: #{e.message}"
+    # rescue YAML::ParserError, YAML::ParseError => e
+    #   abort "Failed to parse #{REPOS_FILE}: #{e.message}"
     end
   end
 

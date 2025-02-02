@@ -109,7 +109,7 @@ class ScraperAnalyzer < ProcessBase
       .join("\n")
       .scan(%r{https?://[^\s<>"']+})
       .reject { |url| url.downcase.start_with?('https://github.com', 'https://morph.io') }
-      .map { |url| url.sub(/^https?:\/\/[^\/]+/, '') }
+      .map { |url| url.sub(/^https?:\/\/[^\/]+/, '').sub(/=\d+$/, '=') }
       .uniq
   end
 

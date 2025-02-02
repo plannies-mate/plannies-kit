@@ -60,7 +60,8 @@ class RepoScanner < ProcessBase
                     File.read(@scraper_file)
                   else
                     Dir.glob(File.join(@repo_path, '**/*'))
-                       .map { |file| File.read(file) }
+                      .select { |file| File.file?(file) }
+                      .map { |file| File.read(file) }
                        .join("\n")
                   end
         lines = content.lines.map(&:strip)

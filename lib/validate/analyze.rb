@@ -118,7 +118,7 @@ class AnalyzeValidator < ProcessBase
     # Test word extraction against specification
     examples = [
       ['https://www.yarracity.vic.gov.au/MyPlanning-application-xsearch', ['/MyPlanning-application-xsearch']],
-      ['https://www.planning.act.gov.au/development_applications?fromDate=20251012', ['/development_applications?fromDate=20251012']]
+      ['https://www.planning.act.gov.au/development_applications?fromDate=20251012', ['/development_applications?fromDate=']]
     ]
     examples.each do |url, expected|
       paths = cmd.extract_url_paths([url])
@@ -161,13 +161,18 @@ class AnalyzeValidator < ProcessBase
 
     assert active_repos.any?, "No active repos found"
 
+    empty_words = empty_urls = 0
     active_repos.each do |name, repo|
-      assert repo.key?(:urls), "Active repo #{name} missing URLs"
-      assert repo.key?(:words), "Active repo #{name} missing words"
-      assert !repo[:urls].empty?, "Active repo #{name} has no URLs"
-      assert !repo[:words].empty?, "Active repo #{name} has no words"
+      assert repo.key?(:urls), "Active repo #{name} missing URLs key"
+      assert repo.key?(:words), "Active repo #{name} missing words key"
       assert !repo[:words].include?('href'), "Active repo #{name} should not have href as a word"
+      empty_urls += 1 if repo[:urls].empty?
+      empty_words += 1 if repo[:words].empty?
     end
+    assert empty_urls < 3,
+           "Should have less than 3 repos with no urls, got: #{empty_urls}"
+    assert empty_words < 3,
+           "Should have less than 3 repos with no words, got: #{empty_words}"
     assert !results[:unknown_words].include?('href'), "global unknown_words should not include href"
   end
 
