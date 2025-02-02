@@ -42,7 +42,7 @@ technical details, always refer to SPEC.md.
 - Fail fast and explicitly when assumptions are violated
 - Use language-specific safety mechanisms
 - Prefer restrictive parsing over permissive methods
-- Prioritize code clarity over excessive defensive checks
+- Prioritize code clarity over excessively detailed defensive checks
 - Remember: Code is a communication tool, not just machine instructions
 
 ### Code Development
