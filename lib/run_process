@@ -1,0 +1,48 @@
+#!/bin/bash
+
+cd "$(dirname "$0")/.." || ( echo "Could not cd to project directory" ; exit 1 )
+
+error_handler() {
+   local line_no=$1
+   local error_code=$2
+   local last_command="${BASH_COMMAND}"
+   echo "ERROR: line ${line_no} exited with status ${error_code}, command: ${last_command}"
+   exit "${error_code:-1}"
+}
+
+set -eo pipefail
+
+trap 'error_handler ${LINENO} $?' ERR
+
+# Only pass LIMIT if it was actually specified
+if [ -n "$1" ]; then
+  LIMIT_ARG="$1"
+  echo "Using limit: $LIMIT_ARG"
+else
+  LIMIT_ARG=""
+fi
+
+mkdir -p repos
+mkdir -p log
+
+echo "Step 1: Downloading repositories..."
+# shellcheck disable=SC2086
+lib/download.rb $LIMIT_ARG
+
+echo -e "\nStep 2: Validating Download of repositories..."
+# shellcheck disable=SC2086
+lib/validate/download.rb $LIMIT_ARG
+
+echo -e "\nStep 3: Cleaning repositories..."
+lib/cleanup.rb
+
+echo -e "\nStep 4: Validating Clean of repositories..."
+lib/validate/cleanup.rb
+
+echo -e "\nStep 5: Analyzing code..."
+lib/analyze.rb
+
+echo -e "\nStep 6: Validating Analysis of code..."
+lib/validate/analyze.rb
+
+echo -e "\nProcess complete!"
