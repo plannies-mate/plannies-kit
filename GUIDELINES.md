@@ -37,16 +37,11 @@ technical details, always refer to SPEC.md.
 
 ## Defensive Programming Principles
 
-- Always validate and sanitize external inputs
-- Assume all external data or input is potentially malicious and/or broken
-- Use language-specific safety mechanisms
-- Prefer explicit, restrictive parsing over permissive methods
+- Treat all external input as potentially hostile
+- Validate and sanitize inputs rigorously
 - Fail fast and explicitly when assumptions are violated
-- Treat code as a communication tool, not just a machine instruction set
-- Use the clearest, simplest to understand rather than the most sophisticated approach that does the job
-    - You are not as smart as you think you are! Code at least one level down from what you are capable of to reduce the
-      number of mistakes!
-- Take the pragmatic approach - don't over complicate things!
+- Use language-specific safety mechanisms
+- Prefer restrictive parsing over permissive methods
 
 ### Code Development
 
