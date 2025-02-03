@@ -27,7 +27,12 @@ class ScraperAnalyzer < ProcessBase
     @results = initial_results
     puts "\nAnalyzing #{repos.count} repositories..."
 
-    repos.each do |repo_name, _data|
+    repos.each do |repo_name, data|
+      # add known words from repo name and description to ignoredWords list
+      "#{repo_name} #{data['description']}"
+        .scan(/[a-z]+/i)
+        .each { |word| @dictionary.known?(word.downcase) }
+
       analyze_repo(repo_name, @results, @dictionary)
     end
 

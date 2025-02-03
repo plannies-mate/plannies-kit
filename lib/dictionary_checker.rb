@@ -4,12 +4,12 @@ require 'open3'
 
 class DictionaryChecker
   COMMON_WORDS = %w[
-    application applications city com council current data date development
-    developments edu false find format gov http https index
-    list null org page plan planning plans query scraper
-    scrapers search shire status true type undefined view www
-    rspec scraperwiki mechanize httparty nokogiri json rubygems
-    capybara selenium-webdriver base_url info_url root_url
+    application applications base_url capybara city com council current data date
+    development developments edu false find format gov http httparty https
+    index info_url json list mechanize multiple nokogiri nsw null org
+    page plan planning plans qld query regional root_url rspec rubygems
+    scraper scrapers scraperwiki search selenium-webdriver shire status tas true type
+    undefined vic view www
   ].freeze
 
   def initialize

@@ -45,4 +45,16 @@ lib/analyze.rb
 echo -e "\nStep 6: Validating Analysis of code..."
 lib/validate/analyze.rb
 
+echo -e "\nStep 7: deploying to sister project..."
+dest=../ianheggie-oaf.github.io/data/
+dest2=../ianheggie-oaf.github.io/docs/data/
+if [ -d "$(dirname "$dest")" ]; then
+  echo "Linking log/scraper_analysis.js to $dest $dest2 .."
+  mkdir -p "$dest" "$dest2"
+  ln -f log/scraper_analysis.js "$dest"
+  ln -f log/scraper_analysis.js "$dest2"
+else
+  echo "Skipping Linking as parent of $dest is missing!"
+fi
+
 echo -e "\nProcess complete!"

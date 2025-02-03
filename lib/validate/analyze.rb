@@ -286,8 +286,8 @@ class AnalyzeValidator < ProcessBase
 
     assert empty_words_from_urls < 3,
            "Should have less than 3 repos with no urls, got: #{empty_words_from_urls}"
-    assert empty_words_from_strings < 3,
-           "Should have less than 3 repos with no words_from_strings, got: #{empty_words_from_strings}"
+    assert empty_words_from_strings < 6,
+           "Should have less than 6 repos with no words_from_strings, got: #{empty_words_from_strings}"
 
     # New test: Ensure no words are common to all repos
     common_words_from_strings = active_repos.values.map { |repo| repo[:words_from_strings] }.reduce(&:&)
