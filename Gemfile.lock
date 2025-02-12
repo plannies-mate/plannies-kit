@@ -40,6 +40,7 @@ GEM
       racc (~> 1.4)
     public_suffix (6.0.1)
     racc (1.8.1)
+    rake (13.2.1)
     resolv (0.6.0)
     rubyntlm (0.6.5)
       base64
@@ -56,6 +57,7 @@ DEPENDENCIES
   fileutils
   json
   mechanize
+  rake
   resolv
   whois
   yaml
