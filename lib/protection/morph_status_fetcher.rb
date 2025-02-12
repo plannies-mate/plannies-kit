@@ -4,7 +4,7 @@ module Protection
     CACHE_EXPIRY = 86400 # 24 hours in seconds
 
     def initialize
-      @morph_scraper = MorphScraper.new
+      @morph_scraper = Protection::MorphScraper.new
     end
 
     def fetch
@@ -30,7 +30,7 @@ module Protection
       puts "Fetching fresh Morph.io status data..."
       statuses = {}
 
-      authorities = MasterviewScraper.selected_authorities
+      authorities = Protection::AuthorityUrlResolver.selected_authorities
       authorities.each do |authority|
         begin
           data = @morph_scraper.fetch_authority_data(authority)

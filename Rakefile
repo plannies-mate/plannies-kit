@@ -1,5 +1,9 @@
-require 'bundler/setup'
-Bundler.require
+$LOAD_PATH << "./lib"
+
+require "bundler"
+Bundler.require(:default, :development, :test)
+
+Dir.glob('**/*.rb', base: 'lib/').each { |r| require r }
 
 # Load all rake tasks from lib/tasks
 Dir.glob('lib/tasks/*.rake').each { |r| load r }
@@ -7,9 +11,9 @@ Dir.glob('lib/tasks/*.rake').each { |r| load r }
 desc 'Default task shows available commands'
 task :default do
   puts "\nAvailable commands:"
-  #puts "\nMorph Status Tasks:"
-  #puts "  rake morph:status     # Generate a report of Planning Alerts authority statuses"
-  #puts "  rake morph:links      # Generate categorized links for authorities"
+  puts "\nMorph Status Tasks:"
+  puts "  rake morph:status     # Generate a report of Planning Alerts authority statuses"
+  puts "  rake morph:links      # Generate categorized links for authorities"
   puts "\nProtection Analysis Tasks:"
   puts "  rake protection:fetch_status  # Fetch and cache current Morph.io scraper statuses"
   puts "  rake protection:analyze       # Analyze protection patterns and correlate with scraper status"
@@ -20,7 +24,7 @@ task :default do
   puts "  rake protection:analyze DEBUG=1"
 end
 
-# Task to ensure required tools are available
+desc "Ensures required tools are available"
 task :check_dependencies do
   missing = []
 
@@ -48,6 +52,6 @@ end
 
 # Add dependency check to all tasks except default
 Rake.application.tasks.each do |task|
-  next if task.name == 'default'
+  next if %w[check_dependencies default].include? task.name
   task.enhance([:check_dependencies])
 end

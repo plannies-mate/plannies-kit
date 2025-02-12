@@ -57,7 +57,7 @@ module Protection
 
     def matching_status(repo_name)
       # Match repo to morph status based on scraper.rb patterns
-      authorities = MasterviewScraper.selected_authorities
+      authorities = Protection::AuthorityUrlResolver.selected_authorities
       matching_authority = authorities.find do |authority|
         data = @scraper_statuses[authority]
         data && data[:scraper]&.downcase == repo_name.downcase
