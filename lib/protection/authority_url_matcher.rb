@@ -105,22 +105,30 @@ module Protection
     end
 
     def match_scraper_files
+      require_relative "repo_scanner"
+
       Dir.glob("repos/*/scraper.*").each do |file|
         begin
           content = File.read(file)
           repo_name = file.split('/')[1]
-          url = find_longest_url(content)
 
-          matched_authority = @authority_ids.find do |auth_id|
-            @cache[auth_id][:scraper]&.to_s == repo_name
-          end
+          # Use RepoScanner to get active lines without comments
+          scanner = RepoScanner.new(repo_name)
+          active_lines = scanner.active_lines(only_scraper: true)
 
-          if matched_authority && url
-            @cache[matched_authority][:scraper_file] = file
-            @cache[matched_authority][:scraper_url] = url
-          elsif url
-            @cache[:unmatched_scrapers] ||= []
-            @cache[:unmatched_scrapers] << { name: repo_name, url: url, file: file }
+          if (url = find_longest_url(active_lines.join("\n")))
+            matched_authority = @authority_ids.find do |auth_id|
+              @cache[auth_id][:scraper]&.to_s == repo_name
+            end
+
+            if matched_authority
+              auth_id = matched_authority
+              @cache[auth_id][:scraper_file] = file
+              @cache[auth_id][:scraper_url] = url
+            else
+              @cache[:unmatched_scrapers] ||= []
+              @cache[:unmatched_scrapers] << {name: repo_name, url: url, file: file}
+            end
           end
         rescue => e
           puts "Error processing #{file}: #{e.message}"
@@ -135,21 +143,10 @@ module Protection
     end
 
     def generate_report
-      puts "\n#{'=' * 60}"
-      puts "AUTHORITY MATCHING REPORT"
-      puts "=" * 60
-
-      # Report duplicates first if any found
-      if @duplicates.any?
-        puts "\nWARNING: Found duplicate authority configurations:"
-        @duplicates.each do |dup|
-          puts "  #{dup[:authority]} appears in:"
-          dup[:files].each_with_index do |file, i|
-            puts "    - #{file} (as #{dup[:keys][i]})"
-          end
-        end
-        puts "=" * 60
-      end
+      puts '',
+           "=" * 60,
+           "AUTHORITY MATCHING REPORT",
+           "=" * 60
 
       # First show authorities with URLs
       authorities_with_both_urls = []
@@ -186,7 +183,7 @@ module Protection
       end
 
       puts '',
-           "=" * 60,
+           '=' * 60,
            "#{authorities_with_scraper_urls.size} Authorities with ONLY SCRAPER URLs found:",
            "=" * 60
       authorities_with_scraper_urls.sort_by { |id, _| id.to_s }.each do |auth_id, data|
@@ -233,7 +230,7 @@ module Protection
 
       if @cache[:unmatched_scrapers]&.any?
         puts '',
-             '' '=' * 60,
+             '=' * 60,
              "Unmatched Scrapers:",
              "=" * 60
         @cache[:unmatched_scrapers].each do |scraper|
@@ -252,5 +249,22 @@ module Protection
         duplicates: @duplicates
       }
     end
+
+    # Return structured data for the next stage
+    {
+      matched: @cache.reject { |k| !k.is_a?(Symbol) },
+      unmatched_authorities: @cache[:unmatched_authorities] || [],
+      unmatched_scrapers: @cache[:unmatched_scrapers] || [],
+      duplicates: @duplicates
+    }
+
+    # Return structured data for the next stage
+    {
+      matched: @cache.reject { |k| !k.is_a?(Symbol) },
+      unmatched_authorities: @cache[:unmatched_authorities] || [],
+      unmatched_scrapers: @cache[:unmatched_scrapers] || [],
+      duplicates: @duplicates
+    }
   end
+end
 end
