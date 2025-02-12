@@ -3,9 +3,12 @@ source 'https://rubygems.org'
 ruby '~> 3.3'
 
 # gem 'activesupport' do we need .blank? and other utils?
-gem 'json'
-gem 'yaml'
 gem 'fileutils'
+gem 'json'
+gem 'mechanize'
+gem 'resolv'
+gem 'whois'
+gem 'yaml'
 
 group :development do
   # For maintaining consistent code style
