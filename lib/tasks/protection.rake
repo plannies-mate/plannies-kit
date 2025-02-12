@@ -6,8 +6,26 @@ namespace :protection do
     fetcher.fetch
   end
 
+  desc 'Match authority URLs from different sources'
+  task :match_urls => :fetch_status do
+    matcher = Protection::AuthorityUrlMatcher.new(Protection::MorphStatusFetcher::CACHE_FILE)
+    results = matcher.match_scraper_urls
+
+    # Save full results for later analysis
+    File.write(
+      File.join(ProcessBase::LOG_DIR, 'url_matching.yml'),
+      YAML.dump(results)
+    )
+  end
+
+  desc 'Get protection details from site urls and add to data'
+  task :get_site_details => :match_urls do
+    raise "TODO"
+  end
+
+
   desc 'Analyze protection patterns and correlate with scraper status'
-  task :analyze => :fetch_status do
+  task :analyze => :get_site_details do
     require_relative '../protection/analyzer'
     analyzer = Protection::Analyzer.new
     analyzer.analyze

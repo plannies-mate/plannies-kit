@@ -34,7 +34,8 @@ module Protection
       authorities.each do |authority|
         begin
           data = @morph_scraper.fetch_authority_data(authority)
-          statuses[authority] = analyze_status(data)
+          details = Protection::AuthorityUrlResolver.get_authority_detail(authority)
+          statuses[authority] = analyze_status(data, details)
         rescue => e
           puts "Error fetching #{authority}: #{e.message}"
         end
@@ -44,13 +45,15 @@ module Protection
       statuses
     end
 
-    def analyze_status(data)
+    def analyze_status(data, details)
       {
         working: !data[:warning],
         scraper: data[:scraper],
         last_week: data[:week],
         last_month: data[:month],
-        warning: data[:warning]
+        warning: data[:warning],
+        url: details[:url],
+        name: details[:name]
       }
     end
 
