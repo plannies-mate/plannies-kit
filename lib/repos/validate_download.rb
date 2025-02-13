@@ -3,7 +3,7 @@
 require 'bundler/setup'
 Bundler.require
 
-require_relative '../process_base'
+require_relative '../cess_base'
 
 class DownloadValidator < ProcessBase
   def initialize(limit = nil)

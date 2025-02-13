@@ -1,10 +1,10 @@
 module Protection
   class MorphStatusFetcher
-    CACHE_FILE = File.join('log', 'morph_status_cache.yml')
+    CACHE_FILE = File.join('config', 'planning_alert_authorities.yml')
     CACHE_EXPIRY = 86400 # 24 hours in seconds
 
     def initialize
-      @morph_scraper = Protection::MorphScraper.new
+      @morph_scraper = Protection::PlanningAlertsScraper.new
     end
 
     def fetch

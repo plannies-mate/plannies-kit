@@ -2,7 +2,7 @@
 
 require 'fileutils'
 require 'json'
-require_relative 'process_base'
+require_relative 'repos/os/process_base'
 
 class ScraperAnalysisOutputGenerator
   def initialize(results)

@@ -2,7 +2,7 @@
 
 require "mechanize"
 module Protection
-  class MorphScraper
+  class PlanningAlertsScraper
     MORPH_SCRAPER_LINK_PATTERN = %r{https://morph\.io/planningalerts-scrapers/([^"]+)}.freeze
 
     def fetch_authority_data(authority)

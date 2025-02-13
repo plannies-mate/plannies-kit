@@ -9,9 +9,9 @@ require 'open3'
 require 'time'
 require 'yaml'
 
-require_relative '../process_base'
-require_relative '../analyze'
-require_relative 'repo_scanner'
+require_relative '../cess_base'
+require_relative '../repos/analyze'
+require_relative '../repos/repo_scanner'
 
 class AnalyzeValidator < ProcessBase
   def validate

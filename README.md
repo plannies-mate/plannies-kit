@@ -41,19 +41,19 @@ Run the entire process:
 Or run individual scripts with optional LIMIT parameter:
 
 ```bash
-./lib/download.rb repos        # Downloads all repositories to repos/ AND updates status/download_run.json and status/descriptions.json
-./lib/download.rb repos 5      # Downloads only 5 repositories
-./lib/cleanup.rb repos         # Removes test files, binary files and .git directories
-./lib/analyze.rb repos         # Analyzes code and outputs terms
+./lib/validate_download.rb repos        # Downloads all repositories to repos/ AND updates status/download_run.json and status/descriptions.json
+./lib/validate_download.rb repos 5      # Downloads only 5 repositories
+./lib/validate_cleanup.rb repos         # Removes test files, binary files and .git directories
+./lib/validate_analyze.rb repos         # Analyzes code and outputs terms
 ```
 
 And run individual validate scripts with optional LIMIT parameter:
 
 ```bash
-./lib/validate/download.rb repos        # Validates at least 40 repositories where downloaded but less than 50
-./lib/validate/download.rb repos 5      # Validates at least 5 repositories where downloaded and less than 50
-./lib/validate/cleanup.rb repos         # Validates test files, binary files and .git directories are missing from repos
-./lib/validate/analyze.rb repos         # Validates output from Analyzes in log/*
+./lib/validate/validate_download.rb repos        # Validates at least 40 repositories where downloaded but less than 50
+./lib/validate/validate_download.rb repos 5      # Validates at least 5 repositories where downloaded and less than 50
+./lib/validate/validate_cleanup.rb repos         # Validates test files, binary files and .git directories are missing from repos
+./lib/validate/validate_analyze.rb repos         # Validates output from Analyzes in log/*
 ```
 
 The analysis generates:

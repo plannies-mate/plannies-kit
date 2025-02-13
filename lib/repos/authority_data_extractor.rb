@@ -57,7 +57,7 @@ module Protection
     end
 
     def create_temp_evaluation_file(module_name)
-      temp_file = Tempfile.new(['authority-eval-', '.rb'])
+      temp_file = Tempfile.new(%w[authority-eval- .rb])
       temp_file.write(<<~RUBY)
         #!/usr/bin/env ruby
         

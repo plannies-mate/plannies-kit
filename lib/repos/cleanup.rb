@@ -5,7 +5,7 @@ Bundler.require
 
 require 'fileutils'
 
-require_relative 'process_base'
+require_relative '../cess_base'
 
 class ReposCleaner < ProcessBase
   DIRS_TO_REMOVE = %w[

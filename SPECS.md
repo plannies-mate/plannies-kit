@@ -18,6 +18,7 @@ Note: README.md contains installation and usage instructions which are not relev
 * Validate internal and output files against these specifications
 * the different stages of processing must be separate so they can be run and validated independently against the
   relevant specifications
+* 
 
 ## Scraper Language Classification
 
@@ -128,7 +129,13 @@ Extracted words: ["proposal_text"]
 ├── README.md       # How to install, use and contribute to this project
 ├── SPECS.md        # This file containg specifications
 ├── lib/            # ruby scripts for each stage of processing
-│   └── validate/   # ruby Validation scripts to validate output of processing scripts
+│   ├── analyers/   # analyzers that pull from various files
+│   ├── generatore/ # Generators of static content
+│   ├── planning_alerts/    # classes to scrape the website, create the config file and validate it
+│   ├── repos/      # classes that manage github repo listing, downloading and analysis
+│   ├── tasks/      # Rake tasks t run everythuing (replacing standalone scripts)
+│   ├── url_analysis/ # classes to analyse urls
+│   └── utils/      # gneral util classes
 ├── log/            # Log files output from script/process and lib/analysis
 └── script/         # bash scripts run by user
     ├── process     # Runs all scripts
@@ -153,8 +160,7 @@ Request non-archived PlanningAlerts repo list from Github using
 [standard call](https://github.com/orgs/planningalerts-scrapers/repositories.json?q=archived%3Afalse)
 
 A yml file `config/private_repos.yml` containing a hash of repo names to descriptions will also be merged in as it is
-not
-otherwise available without authentication.
+not otherwise available without authentication.
 
 Note
 

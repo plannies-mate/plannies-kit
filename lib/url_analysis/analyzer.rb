@@ -21,13 +21,13 @@ module Protection
     def load_status_data
       @status_cache = MorphStatusFetcher::CACHE_FILE
       unless File.exist?(@status_cache)
-        raise "Please run rake protection:fetch_status first"
+        raise "Please run rake url_analysis:fetch_status first"
       end
       @scraper_statuses = YAML.load_file(@status_cache)
     end
 
     def analyze_repos
-      puts "\nAnalyzing protection patterns..."
+      puts "\nAnalyzing url_analysis patterns..."
       repos.each do |repo_name, _data|
         analyze_repo(repo_name)
       end

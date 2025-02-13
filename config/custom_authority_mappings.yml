@@ -1,6 +1,0 @@
-
-# Map the repo authority key used for the database to the planningalerts.org.au status page
----
-:central_coast: 
-  scraper: 'multiple_epathway_scraper',
-  pa_url: 'https://www.planningalerts.org.au/authorities/wyong'

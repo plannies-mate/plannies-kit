@@ -4,7 +4,7 @@ require 'bundler/setup'
 Bundler.require
 
 require 'json'
-require_relative '../process_base'
+require_relative '../cess_base'
 
 class CleanupValidator < ProcessBase
   def validate

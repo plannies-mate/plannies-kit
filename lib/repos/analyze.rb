@@ -5,7 +5,7 @@ require 'set'
 require 'time'
 require 'uri'
 
-require_relative 'dictionary_checker'
+require_relative '../utils/dictionary_checker'
 require_relative 'html_filter'
 require_relative 'process_base'
 require_relative 'repo_scanner'

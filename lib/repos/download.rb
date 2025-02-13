@@ -7,7 +7,7 @@ require 'fileutils'
 require 'net/http'
 require 'uri'
 
-require_relative 'process_base'
+require_relative '../cess_base'
 
 class RepoDownloader < ProcessBase
   SECONDS_PER_WEEK = 7 * 24 * 60 * 60

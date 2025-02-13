@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative '../lib/protection/authority_data_extractor'
+require_relative '../lib/repos/authority_data_extractor'
 require 'yaml'
 
 Dir.glob("repos/multiple_*/lib/*/authorities.rb").each do |file|

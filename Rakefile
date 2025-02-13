@@ -15,13 +15,13 @@ task :default do
   puts "  rake morph:status     # Generate a report of Planning Alerts authority statuses"
   puts "  rake morph:links      # Generate categorized links for authorities"
   puts "\nProtection Analysis Tasks:"
-  puts "  rake protection:fetch_status  # Fetch and cache current Morph.io scraper statuses"
-  puts "  rake protection:analyze       # Analyze protection patterns and correlate with scraper status"
+  puts "  rake url_analysis:fetch_status  # Fetch and cache current Morph.io scraper statuses"
+  puts "  rake url_analysis:analyze       # Analyze url_analysis patterns and correlate with scraper status"
   puts "                                 (includes running fetch_status first)"
   puts "\nBoth fetch_status and analyze accept an optional LIMIT parameter, e.g.:"
-  puts "  rake protection:analyze LIMIT=5"
+  puts "  rake url_analysis:analyze LIMIT=5"
   puts "\nAdd DEBUG=1 for verbose output, e.g.:"
-  puts "  rake protection:analyze DEBUG=1"
+  puts "  rake url_analysis:analyze DEBUG=1"
 end
 
 desc "Ensures required tools are available"
